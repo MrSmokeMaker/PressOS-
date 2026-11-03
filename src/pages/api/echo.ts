@@ -2,6 +2,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../utils/supabaseClient';
 import { fetchAION } from '../../utils/aionClient';
+import { isMessageAllowed } from '../../../utils/contentFilter';
+import { logAction } from '../../../utils/audit';
 
 /**
  * POST { message: string }
@@ -10,18 +12,27 @@ import { fetchAION } from '../../utils/aionClient';
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const userId = (req.headers['x-user-id'] as string) || 'guest-journalist';
   const { message } = req.body as { message?: string };
   if (!message) return res.status(400).json({ error: 'Message is required' });
-  const userId = req.headers['x-user-id'] as string;
-  if (!userId) return res.status(400).json({ error: 'Missing X-User-Id header' });
+
+  // 1️⃣ Проверка разрешённого контента
+  const allowed = await isMessageAllowed(userId, message);
+
+  // 2️⃣ Логирование запроса
+  await logAction(userId, 'echo_request', { message }, allowed ? 'allowed' : 'blocked');
+
+  if (!allowed) {
+    return res.status(403).json({ error: 'Вопрос не относится к расследованию' });
+  }
 
   // Retrieve player progress (phase & pressure) from Supabase
-  const { data: progress, error: progErr } = await supabase
+  const { data: progress } = await supabase
     .from('player_progress')
     .select('current_phase, pressure_level')
     .eq('user_id', userId)
     .single();
-  if (progErr) return res.status(500).json({ error: progErr.message });
 
   const phase = progress?.current_phase ?? 1;
 

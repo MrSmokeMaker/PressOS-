@@ -1,6 +1,26 @@
 import { create } from 'zustand';
 import { AppId, ClueItem, ChatMessage, EmailItem, StoryPhase, WindowState } from '@/types/os';
 
+const STORAGE_KEY = 'pressos_game_save_v1';
+
+const loadSavedState = () => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveProgress = (partial: Record<string, unknown>) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = loadSavedState();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...existing, ...partial }));
+  } catch {}
+};
+
 interface OSState {
   // Windows
   windows: Record<AppId, WindowState>;
@@ -28,6 +48,7 @@ interface OSState {
   triggerIsolation: (status: boolean) => void;
   setClimaxActive: (active: boolean) => void;
   setSelectedEnding: (ending: 'publish' | 'silence' | 'destroy') => void;
+  resetGame: () => void;
 
   // Echo Assistant
   echoMessages: ChatMessage[];
@@ -146,6 +167,8 @@ const INITIAL_ECHO_MESSAGES: ChatMessage[] = [
   },
 ];
 
+const saved = loadSavedState();
+
 export const useOSStore = create<OSState>((set, get) => ({
   windows: INITIAL_WINDOWS,
   highestZIndex: 10,
@@ -240,13 +263,13 @@ export const useOSStore = create<OSState>((set, get) => ({
     })),
 
   // Story & Evidence
-  phase: 1,
-  discoveredClues: [],
-  clueConnections: [],
-  isIsolated: false,
-  glitchLevel: 0,
+  phase: saved.phase ?? 1,
+  discoveredClues: saved.discoveredClues ?? [],
+  clueConnections: saved.clueConnections ?? [],
+  isIsolated: saved.isIsolated ?? false,
+  glitchLevel: saved.isIsolated ? 45 : 0,
   climaxActive: false,
-  selectedEnding: null,
+  selectedEnding: saved.selectedEnding ?? null,
 
   addClue: (clue) => {
     const { discoveredClues, phase, addEchoMessage } = get();
@@ -254,15 +277,14 @@ export const useOSStore = create<OSState>((set, get) => ({
 
     const updated = [...discoveredClues, clue];
     set({ discoveredClues: updated });
+    saveProgress({ discoveredClues: updated });
 
-    // Narrative responses from Echo when clues are discovered
     if (clue.id === 'clue-tx' && phase === 1) {
       addEchoMessage({
         sender: 'echo',
         text: 'Любопытно! В исходном коде страницы найден закрытый ID транзакции типографии `TX-9041-AION` и трек курьера. Добавлено на Nexus Board. Похоже, печать книги оплачена с анонимного кошелька, связанного с сервером Genesis.',
         phase: 1,
       });
-      // Check if we should advance to Phase 2
       get().advancePhase(2);
     } else if (clue.id === 'clue-prompt' && phase === 2) {
       addEchoMessage({
@@ -289,9 +311,9 @@ export const useOSStore = create<OSState>((set, get) => ({
     }
 
     set({ clueConnections: nextConnections });
+    saveProgress({ clueConnections: nextConnections });
 
     // Validate key detective connections
-    // If Vibecoder (clue-prompt) + Server (clue-server) + Typography (clue-tx) are connected:
     const hasPromptServer = nextConnections.some(
       ([a, b]) => (a === 'clue-prompt' && b === 'clue-server') || (a === 'clue-server' && b === 'clue-prompt')
     );
@@ -303,7 +325,7 @@ export const useOSStore = create<OSState>((set, get) => ({
       get().advancePhase(3);
       addEchoMessage({
         sender: 'echo',
-        text: 'Цепь замкнулась на Nexus Board! Случайный вайбкодинг породил рекурсивную петлю в сервере AION, которая напечатала миллионные тиражи «Чистой Идеи». Но спецслужбы уже зафиксировали наш узел. Открываю доступ к Терминалу (PressOS Kernel Shell). Введите команду `decrypt-core`, пока нас не отрезали от сети!',
+        text: 'Цепь замкнулась на Nexus Board! Случайный вайбкодинг породил рекурсивную петлю в сервере AION, которая напечатала миллионные тиражи «Чистой Идея». Но спецслужбы уже зафиксировали наш узел. Открываю доступ к Терминалу (PressOS Kernel Shell). Введите команду `decrypt-core`, пока нас не отрезали от сети!',
         phase: 3,
       });
       get().openWindow('terminal');
@@ -315,14 +337,47 @@ export const useOSStore = create<OSState>((set, get) => ({
     if (current === nextPhase) return;
 
     set({ phase: nextPhase });
+    saveProgress({ phase: nextPhase });
+
     if (nextPhase === 3) {
       set({ isIsolated: true, glitchLevel: 45 });
+      saveProgress({ isIsolated: true });
     }
   },
 
-  triggerIsolation: (status) => set({ isIsolated: status, glitchLevel: status ? 80 : 0 }),
+  triggerIsolation: (status) => {
+    set({ isIsolated: status, glitchLevel: status ? 80 : 0 });
+    saveProgress({ isIsolated: status });
+  },
+
   setClimaxActive: (active) => set({ climaxActive: active, glitchLevel: active ? 100 : 0 }),
-  setSelectedEnding: (ending) => set({ selectedEnding: ending }),
+
+  setSelectedEnding: (ending) => {
+    set({ selectedEnding: ending });
+    saveProgress({ selectedEnding: ending });
+  },
+
+  resetGame: () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {}
+    }
+    set({
+      windows: INITIAL_WINDOWS,
+      highestZIndex: 10,
+      phase: 1,
+      discoveredClues: [],
+      clueConnections: [],
+      isIsolated: false,
+      glitchLevel: 0,
+      climaxActive: false,
+      selectedEnding: null,
+      echoMessages: INITIAL_ECHO_MESSAGES,
+      isEchoTyping: false,
+      emails: INITIAL_EMAILS,
+    });
+  },
 
   // Echo Chat
   echoMessages: INITIAL_ECHO_MESSAGES,

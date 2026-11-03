@@ -32,7 +32,7 @@ body {
   box-shadow: 0 0 25px rgba(0, 245, 255, 0.1);
 }
 
-/* CRT Scanlines Overlay for Terminal */
+/* CRT Scanlines Overlay for Terminal and Desktop */
 .crt-scanlines {
   background: linear-gradient(
     rgba(18, 16, 16, 0) 50%, 
@@ -44,7 +44,6 @@ body {
     rgba(0, 0, 255, 0.03)
   );
   background-size: 100% 3px, 6px 100%;
-  pointer-events: none;
 }
 
 /* Custom scrollbars */
@@ -65,14 +64,34 @@ body {
 
 /* Glitch animation */
 @keyframes glitch-anim {
-  0% { transform: translate(0) }
-  20% { transform: translate(-2px, 2px) }
-  40% { transform: translate(-2px, -2px) }
-  60% { transform: translate(2px, 2px) }
-  80% { transform: translate(2px, -2px) }
-  100% { transform: translate(0) }
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
 }
 
 .glitch-active {
-  animation: glitch-anim 0.2s infinite;
+  animation: glitch-anim 0.25s infinite;
+}
+
+/* Network isolation vignette */
+.network-isolated-overlay {
+  box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Drop Target Pulse */
+@keyframes drop-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5), inset 0 0 10px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.9), inset 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.drop-target-active {
+  animation: drop-pulse 1s infinite ease-in-out;
 }

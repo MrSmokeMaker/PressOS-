@@ -6,6 +6,7 @@ import { ClueItem } from '@/types/os';
 import { DndProvider, useDrag, useDrop, useDragLayer } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Plus, Network, GitBranch, Server, FileText, Link2 } from 'lucide-react';
+import { useAudio } from '@/context/AudioContext';
 
 const CARD_POSITIONS: Record<string, { x: number; y: number }> = {
   'clue-prompt': { x: 60, y: 100 },
@@ -31,20 +32,21 @@ const DragPreview = () => {
         left: clientOffset.x,
         top: clientOffset.y,
         transform: 'translate(-50%, -50%)',
-        opacity: 0.85,
+        opacity: 0.9,
         zIndex: 9999,
-        width: 240,
-        padding: '0.75rem',
-        background: 'rgba(24, 29, 47, 0.95)',
+        width: 250,
+        padding: '0.85rem',
+        background: 'rgba(20, 26, 43, 0.96)',
         border: '2px dashed #ef4444',
         borderRadius: '0.75rem',
-        color: '#f87171',
+        color: '#fca5a5',
         fontSize: '0.75rem',
         fontFamily: 'monospace',
-        boxShadow: '0 0 20px rgba(239, 68, 68, 0.4)',
+        boxShadow: '0 0 25px rgba(239, 68, 68, 0.5)',
       }}
     >
-      Перетаскивание улики: {item.id}
+      <div className="font-bold mb-1">🔗 Соединение с карточкой</div>
+      <div className="text-[11px] text-slate-300">Наведите на вторую улику для замыкания цепи</div>
     </div>
   );
 };
@@ -102,11 +104,11 @@ const ClueCard: React.FC<CardProps> = ({ clue, isSelected, onSelect, onDropConne
       style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
       className={`absolute w-64 p-4 rounded-xl backdrop-blur-md cursor-pointer transition-all duration-200 z-10 select-none ${
         isSelected
-          ? 'ring-2 ring-amber-400 bg-amber-950/80 shadow-[0_0_25px_rgba(245,158,11,0.3)]'
+          ? 'ring-2 ring-amber-400 bg-amber-950/80 shadow-[0_0_25px_rgba(245,158,11,0.35)]'
           : isOver
-          ? 'ring-2 ring-rose-500 bg-rose-950/80 shadow-[0_0_25px_rgba(244,63,94,0.4)]'
+          ? 'ring-2 ring-rose-500 bg-rose-950/90 shadow-[0_0_35px_rgba(244,63,94,0.6)] drop-target-active'
           : 'bg-[#181d2f]/90 hover:bg-[#1f263d] border border-white/10 hover:border-amber-500/40 shadow-xl'
-      } ${isDragging ? 'opacity-30' : ''}`}
+      } ${isDragging ? 'opacity-25 scale-95' : ''}`}
     >
       <div className="flex items-center gap-2 mb-2">
         {getCategoryIcon(clue.category)}
@@ -133,12 +135,14 @@ export const NexusBoard: React.FC = () => {
     addClue,
     phase,
   } = useOSStore();
+  const { play } = useAudio();
 
   const [selectedClueId, setSelectedClueId] = useState<string | null>(null);
 
   const hasPromptClue = discoveredClues.some((c) => c.id === 'clue-prompt');
 
   const handleDiscoverPromptClue = () => {
+    play('click');
     addClue({
       id: 'clue-prompt',
       title: 'Коммит @vibe_sloth: «Genesis-Prompt»',
@@ -153,6 +157,7 @@ export const NexusBoard: React.FC = () => {
   };
 
   const handleCardClick = (id: string) => {
+    play('click');
     if (!selectedClueId) {
       setSelectedClueId(id);
     } else if (selectedClueId === id) {
@@ -164,6 +169,7 @@ export const NexusBoard: React.FC = () => {
   };
 
   const handleDropConnection = (sourceId: string, targetId: string) => {
+    play('click');
     toggleClueConnection(sourceId, targetId);
   };
 

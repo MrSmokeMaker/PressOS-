@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Bot, Globe, Mail, Network, Terminal, ShieldAlert, Cpu } from 'lucide-react';
+import { Bot, Globe, Mail, Network, Terminal, ShieldAlert, Cpu, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import { AppId } from '@/types/os';
 import { useOSStore } from '@/store/useOSStore';
 import { useAudio } from '@/context/AudioContext';
 
 export const Taskbar: React.FC = () => {
-  const { windows, openWindow, focusWindow, phase, isIsolated, emails } = useOSStore();
+  const { windows, openWindow, focusWindow, phase, isIsolated, emails, resetGame } = useOSStore();
   const [time, setTime] = useState<string>('10:00:00');
-  const { play } = useAudio();
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const { play, mute, toggleMute } = useAudio();
 
   useEffect(() => {
     const update = () => {
@@ -20,11 +21,6 @@ export const Taskbar: React.FC = () => {
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  // Play ambient sound on mount
-  useEffect(() => {
-    play('ambient');
-  }, [play]);
 
   const unreadMails = emails.filter((e) => !e.read && e.phaseRequired <= (typeof phase === 'number' ? phase : 3)).length;
 
@@ -69,6 +65,12 @@ export const Taskbar: React.FC = () => {
     } else {
       focusWindow(id);
     }
+  };
+
+  const handleReset = () => {
+    play('click');
+    resetGame();
+    setShowResetConfirm(false);
   };
 
   const getPhaseName = () => {
@@ -140,12 +142,60 @@ export const Taskbar: React.FC = () => {
         })}
       </div>
 
-      {/* System Tray & Clock */}
-      <div className="flex items-center gap-3 font-mono text-xs text-slate-400">
+      {/* System Tray, Controls & Clock */}
+      <div className="flex items-center gap-2 font-mono text-xs text-slate-400">
+        {/* Mute Audio Toggle */}
+        <button
+          onClick={() => {
+            toggleMute();
+            play('click');
+          }}
+          className={`p-1.5 rounded border transition-colors cursor-pointer ${
+            mute
+              ? 'bg-rose-950/60 border-rose-500/40 text-rose-400'
+              : 'bg-black/40 border-white/10 text-cyan-400 hover:border-cyan-500/40'
+          }`}
+          title={mute ? 'Включить звук' : 'Выключить звук (Mute)'}
+        >
+          {mute ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
+
+        {/* Reset Game Button */}
+        <div className="relative">
+          <button
+            onClick={() => setShowResetConfirm(!showResetConfirm)}
+            className="p-1.5 rounded bg-black/40 border border-white/10 hover:border-amber-500/40 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+            title="Перезагрузить систему (Сброс расследования)"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+
+          {showResetConfirm && (
+            <div className="absolute bottom-10 right-0 bg-[#0d1322] border border-amber-500/40 rounded-lg p-2.5 shadow-2xl flex flex-col gap-2 z-50 min-w-[200px]">
+              <span className="text-[11px] text-amber-300 font-sans">Сбросить расследование?</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleReset}
+                  className="flex-1 py-1 px-2 rounded bg-rose-600/80 hover:bg-rose-600 text-[11px] text-white font-bold transition-colors cursor-pointer"
+                >
+                  Сбросить
+                </button>
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="py-1 px-2 rounded bg-white/10 hover:bg-white/20 text-[11px] text-slate-300 transition-colors cursor-pointer"
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="hidden sm:flex items-center gap-2 bg-black/40 px-2.5 py-1 rounded border border-white/5">
           <span className="text-[10px] text-slate-500">NODE:</span>
           <span className="text-cyan-400">#NY-AVALON-7</span>
         </div>
+
         <div className="px-2.5 py-1 rounded bg-black/60 border border-cyan-500/30 text-cyan-300 font-bold tracking-widest">
           {time}
         </div>

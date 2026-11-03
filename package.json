@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "deploy": "npm run build && git add . && git commit -m \"Deploy to GitHub Pages\" && git push origin main",
-    "test": "node node_modules/jiti/lib/jiti-cli.mjs src/__tests__/gameFlow.test.mjs"
+    "test": "node node_modules/jiti/lib/jiti-cli.mjs src/__tests__/runAllTests.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.0.0",

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal as TerminalIcon } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
+import { useAudio } from '@/context/AudioContext';
 
 interface HistoryEntry {
   command: string;
@@ -12,6 +13,7 @@ interface HistoryEntry {
 
 export const Terminal: React.FC = () => {
   const { phase, setClimaxActive, triggerIsolation } = useOSStore();
+  const { play } = useAudio();
   const [history, setHistory] = useState<HistoryEntry[]>([
     {
       command: 'sys-init',
@@ -29,6 +31,7 @@ export const Terminal: React.FC = () => {
     const trimmed = cmd.trim();
     if (!trimmed) return;
 
+    play('click');
     const parts = trimmed.split(' ');
     const root = parts[0].toLowerCase();
 
@@ -79,6 +82,7 @@ Engine response: [Recursive synthesis initiated]...`;
         } else {
           output = `cat: ${parts[1] || 'аргумент отсутствует'}: Файл не найден`;
           isError = true;
+          play('alert');
         }
         break;
 
@@ -89,6 +93,7 @@ Engine response: [Recursive synthesis initiated]...`;
  3  deep-mesh-relay.classified (89.20.11.2)  14.8ms
  4  genesis-core-aion (192.88.99.14) [HOST REACHED]
  ВНИМАНИЕ: Спецслужбы перехватили обратный пакет! Узел переведен в режим жесткой изоляции!`;
+        play('alert');
         triggerIsolation(true);
         break;
 
@@ -97,6 +102,7 @@ Engine response: [Recursive synthesis initiated]...`;
 Деобфускация манифеста: 100%
 Инъекция в интерфейс PressOS: УСПЕШНО
 Внимание: Ядро перехватывает управление рабочим столом...`;
+        play('alert');
         setTimeout(() => {
           setClimaxActive(true);
         }, 1200);
@@ -105,6 +111,7 @@ Engine response: [Recursive synthesis initiated]...`;
       default:
         output = `Команда не распознана: "${trimmed}". Введите "help" для списка команд.`;
         isError = true;
+        play('alert');
     }
 
     setHistory((prev) => [...prev, { command: trimmed, output, isError }]);
@@ -155,7 +162,10 @@ Engine response: [Recursive synthesis initiated]...`;
           <input
             type="text"
             value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
+            onChange={(e) => {
+              setInputVal(e.target.value);
+              play('typing');
+            }}
             placeholder='Введите команду (например, "help" или "decrypt-core")...'
             className="flex-1 bg-transparent text-emerald-300 placeholder:text-emerald-800 outline-none font-mono text-xs"
             autoFocus

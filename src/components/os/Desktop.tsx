@@ -12,7 +12,7 @@ import { MailClient } from '@/components/apps/MailClient';
 import { ClimaxModal } from '@/components/apps/ClimaxModal';
 
 export const Desktop: React.FC = () => {
-  const { windows, isIsolated, glitchLevel, climaxActive } = useOSStore();
+  const { windows, isIsolated, climaxActive } = useOSStore();
 
   return (
     <main
@@ -31,7 +31,7 @@ export const Desktop: React.FC = () => {
     >
       {/* Dynamic Digital Glitch Interference Overlay */}
       {isIsolated && (
-        <div className="fixed inset-0 pointer-events-none z-40 bg-rose-500/5 mix-blend-screen opacity-70 crt-scanlines" />
+        <div className="fixed inset-0 pointer-events-none z-40 bg-rose-500/10 mix-blend-screen opacity-80 crt-scanlines network-isolated-overlay" />
       )}
 
       {/* OS Windows */}
@@ -65,10 +65,10 @@ export const Desktop: React.FC = () => {
         </WindowFrame>
       )}
 
-      {/* Climax Fullscreen Modal */}
-      <ClimaxModal />
+      {/* Climax Narrative Modal */}
+      {climaxActive && <ClimaxModal />}
 
-      {/* System Taskbar */}
+      {/* OS Bottom Taskbar */}
       <Taskbar />
     </main>
   );
