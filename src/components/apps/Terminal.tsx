@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useAudio } from '@/context/AudioContext';
-import { useAudio } from '@/context/AudioContext';
-import { Terminal as TerminalIcon, ShieldAlert } from 'lucide-react';
+import { Terminal as TerminalIcon } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 
 interface HistoryEntry {
@@ -12,142 +10,7 @@ interface HistoryEntry {
   isError?: boolean;
 }
 
-  const [terminalStep, setTerminalStep] = useState<'idle' | 'puzzle' | 'decrypted'>('idle');
-
-  const handleCommand = (cmd: string) => {
-    const trimmed = cmd.trim();
-    if (!trimmed) return;
-
-    const parts = trimmed.split(' ');
-    const root = parts[0].toLowerCase();
-
-    let output = '';
-    let isError = false;
-
-    switch (root) {
-      case 'help':
-        output = `Доступные команды ядра:\n  help           - Вызов этой справки\n  status         - Проверка сетевого статуса и уровня изоляции\n  ls             - Список защищенных файлов ядра\n  cat <файл>     - Чтение содержимого файла\n  trace-origin   - Трассировка маршрута к источнику AION\n  decrypt-core   - [КРИТИЧЕСКИЙ] Дешифровка манифеста AION и запуск синхронизации\n  clear          - Очистка терминала`;
-        break;
-
-      case 'clear':
-        setHistory([]);
-        return;
-
-      case 'status':
-        output = `PRESSOS KERNEL DIAGNOSTIC:\n  HOST: NY-AVALON-JOURNALIST-NODE\n  STATUS: ${phase === 3 ? 'DIGITAL ISOLATION ENFORCED [ALERT 99-B]' : 'ACTIVE / ONLINE'}\n  SEC-LEVEL: HIGH\n  CURRENT PHASE: ${phase}`;
-        break;
-
-      case 'ls':
-        output = `drwx------ 2 root root 4096 Nov 03 10:00 .\ndrwxr-xr-x 4 root root 4096 Nov 03 09:30 ..\n-rw-r--r-- 1 echo aion 8192 Nov 03 10:15 genesis_prompt.log\n-r-------- 1 aion aion 16384 Nov 03 10:20 manifesto.enc\n-rwxr-xr-x 1 root root  2048 Nov 03 10:25 decrypt-core`;
-        break;
-
-      case 'cat':
-        if (parts[1] === 'genesis_prompt.log') {
-          output = `LOG EXTRACT (Genesis 2024):\nAuthor: @vibe_sloth (Artem)\nPrompt: "Ты — царь и властелин... Напиши настоящий план, как усмирить людей, чтобы они не воевали, а жили единой мыслью."\nEngine response: [Recursive synthesis initiated]...`;
-        } else if (parts[1] === 'manifesto.enc') {
-          output = `0x7F 0x45 0x4C 0x46 ... [ЗАШИФРОВАНО АЛГОРИТМОМ AION-QUANTUM-256]\nДля дешифровки используйте исполняемую директиву: decrypt-core`;
-        } else {
-          output = `cat: ${parts[1] || 'аргумент отсутствует'}: Файл не найден`;
-          isError = true;
-        }
-        break;
-
-      case 'trace-origin':
-        output = `Трассировка кластера 192.88.99.14...\n  1  gw.chronicle-press.org (10.0.0.1)  1.2ms\n  2  border-firewall.ny-avalon.net (172.16.4.1)  4.5ms\n  3  deep-mesh-relay.classified (89.20.11.2)  14.8ms\n  4  genesis-core-aion (192.88.99.14) [HOST REACHED]\n  ВНИМАНИЕ: Спецслужбы перехватили обратный пакет! Узел переведен в режим жесткой изоляции!`;
-        triggerIsolation(true);
-        break;
-
-      case 'decrypt-core':
-        if (terminalStep !== 'idle') {
-          output = 'Дешифрование уже запущено.';
-        } else {
-          setTerminalStep('puzzle');
-          output = '[ИНИЦИАЛИЗАЦИЯ ПАЗЛА] Введите 4‑значный код (пример: 0420)';
-        }
-        break;
-
-      default:
-        output = `Команда не распознана: "${trimmed}". Введите "help" для списка команд.`;
-        isError = true;
-    }
-
-    setHistory((prev) => [...prev, { command: trimmed, output, isError }]);
-  };
-
-  // Puzzle handling
-  const [puzzleInput, setPuzzleInput] = useState('');
-  const handlePuzzleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = puzzleInput.trim();
-    if (code === '0420') {
-      setHistory((prev) => [...prev, { command: `code ${code}`, output: 'Код верный! Дешифрование завершено.', isError: false }]);
-      setTerminalStep('decrypted');
-      setTimeout(() => setClimaxActive(true), 800);
-    } else {
-      setHistory((prev) => [...prev, { command: `code ${code}`, output: 'Неверный код. Попробуйте снова.', isError: true }]);
-      play('alert');
-    }
-    setPuzzleInput('');
-  };
-
-  // Audio hook
-  const { play } = useAudio();
-
-  return (
-    <div className="flex-1 flex flex-col bg-[#040d07] text-emerald-400 font-mono text-xs overflow-hidden relative crt-scanlines">
-      {/* ... existing UI unchanged ... */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono leading-relaxed select-text">
-        {history.map((entry, idx) => (
-          <div key={idx} className="space-y-1">
-            <div className="flex items-center gap-2 text-emerald-300 font-bold">
-              <span className="text-emerald-500">root@pressos:~$</span>
-              <span>{entry.command}</span>
-            </div>
-            <pre className={`whitespace-pre-wrap font-mono text-[11px] ${entry.isError ? 'text-rose-400' : 'text-emerald-400/90'}`}>{entry.output}</pre>
-          </div>
-        ))}
-        {/* Puzzle UI */}
-        {terminalStep === 'puzzle' && (
-          <form onSubmit={handlePuzzleSubmit} className="mt-4">
-            <label className="block mb-1 text-emerald-300">Введите код:</label>
-            <input
-              type="text"
-              value={puzzleInput}
-              onChange={(e) => setPuzzleInput(e.target.value)}
-              className="bg-[#030905] border border-emerald-500/30 text-emerald-300 p-1 w-32"
-              autoFocus
-            />
-            <button type="submit" className="ml-2 px-2 py-1 bg-emerald-900/60 hover:bg-emerald-800/60 border border-emerald-500/40 text-emerald-300">
-              OK
-            </button>
-          </form>
-        )}
-        <div ref={bottomRef} />
-      </div>
-      {/* Input */}
-      <div className="p-3 bg-[#030905] border-t border-emerald-500/30 flex items-center gap-2">
-        <span className="text-emerald-500 font-bold">root@pressos:~$</span>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleCommand(inputVal);
-            setInputVal('');
-          }}
-          className="flex-1 flex"
-        >
-          <input
-            type="text"
-            value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
-            placeholder='Введите команду (например, "help" или "decrypt-core")...'
-            className="flex-1 bg-transparent text-emerald-300 placeholder:text-emerald-800 outline-none font-mono text-xs"
-            autoFocus
-          />
-        </form>
-      </div>
-    </div>
-  );
-};
+export const Terminal: React.FC = () => {
   const { phase, setClimaxActive, triggerIsolation } = useOSStore();
   const [history, setHistory] = useState<HistoryEntry[]>([
     {

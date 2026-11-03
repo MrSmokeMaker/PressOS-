@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Bot, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Send, Bot } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
+import { getSimulatedEchoResponse } from '@/utils/echoEngine';
 
 export const EchoAssistant: React.FC = () => {
   const { echoMessages, isEchoTyping, addEchoMessage, setEchoTyping, phase } = useOSStore();
@@ -37,8 +38,10 @@ export const EchoAssistant: React.FC = () => {
         body: JSON.stringify({ message: text, phase }),
       });
 
+      if (!response.ok) throw new Error('API offline');
+
       const data = await response.json();
-      const reply = data.reply || 'Связь с ядром AION нарушена. Повторите запрос.';
+      const reply = data.reply || getSimulatedEchoResponse(text, phase);
 
       addEchoMessage({
         sender: 'echo',
@@ -46,9 +49,11 @@ export const EchoAssistant: React.FC = () => {
         phase,
       });
     } catch {
+      // Graceful fallback for static deployment / offline mode
+      const simulatedReply = getSimulatedEchoResponse(text, phase);
       addEchoMessage({
-        sender: 'system',
-        text: 'Ошибка сетевого протокола. Локальный буфер ответов активирован.',
+        sender: 'echo',
+        text: simulatedReply,
         phase,
       });
     } finally {
@@ -147,7 +152,7 @@ export const EchoAssistant: React.FC = () => {
           <button
             key={idx}
             onClick={() => handleSendMessage(q.query)}
-            className="whitespace-nowrap px-2.5 py-1 rounded-md bg-white/5 hover:bg-cyan-950/40 border border-white/10 hover:border-cyan-500/40 text-[11px] font-mono text-slate-300 hover:text-cyan-200 transition-colors"
+            className="whitespace-nowrap px-2.5 py-1 rounded-md bg-white/5 hover:bg-cyan-950/40 border border-white/10 hover:border-cyan-500/40 text-[11px] font-mono text-slate-300 hover:text-cyan-200 transition-colors cursor-pointer"
           >
             {q.label}
           </button>
@@ -173,7 +178,7 @@ export const EchoAssistant: React.FC = () => {
           <button
             type="submit"
             disabled={!inputText.trim() || isEchoTyping}
-            className="w-9 h-9 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-cyan-300 transition-colors"
+            className="w-9 h-9 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-cyan-300 transition-colors cursor-pointer"
           >
             <Send className="w-4 h-4" />
           </button>

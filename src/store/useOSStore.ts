@@ -146,25 +146,7 @@ const INITIAL_ECHO_MESSAGES: ChatMessage[] = [
   },
 ];
 
-export const useOSStore = create<OSState>((set, get) => {
-  // Load persisted state
-  const persisted = typeof window !== 'undefined' ? localStorage.getItem('pressos-state') : null;
-  const initial = persisted ? JSON.parse(persisted) : {};
-  return { ...{
-    windows: INITIAL_WINDOWS,
-    highestZIndex: 10,
-    phase: 1,
-    discoveredClues: [],
-    clueConnections: [],
-    isIsolated: false,
-    glitchLevel: 0,
-    climaxActive: false,
-    selectedEnding: null,
-    echoMessages: INITIAL_ECHO_MESSAGES,
-    isEchoTyping: false,
-    emails: INITIAL_EMAILS,
-  }, ...initial };
-
+export const useOSStore = create<OSState>((set, get) => ({
   windows: INITIAL_WINDOWS,
   highestZIndex: 10,
 

@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Bot, Globe, Mail, Network, Terminal, ShieldAlert, Cpu } from 'lucide-react';
 import { AppId } from '@/types/os';
 import { useOSStore } from '@/store/useOSStore';
+import { useAudio } from '@/context/AudioContext';
 
 export const Taskbar: React.FC = () => {
   const { windows, openWindow, focusWindow, phase, isIsolated, emails } = useOSStore();
   const [time, setTime] = useState<string>('10:00:00');
+  const { play } = useAudio();
 
   useEffect(() => {
     const update = () => {
@@ -18,6 +20,11 @@ export const Taskbar: React.FC = () => {
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Play ambient sound on mount
+  useEffect(() => {
+    play('ambient');
+  }, [play]);
 
   const unreadMails = emails.filter((e) => !e.read && e.phaseRequired <= (typeof phase === 'number' ? phase : 3)).length;
 
@@ -54,32 +61,11 @@ export const Taskbar: React.FC = () => {
     },
   ];
 
-  import { useAudio } from '@/context/AudioContext';
-
-  const { play, mute, toggleMute } = useAudio();
-
-  // Play ambient sound on mount
-  React.useEffect(() => {
-    play('ambient');
-  }, []);
-
-  // Play click sound on app button click
   const handleAppClick = (id: AppId) => {
     play('click');
     const win = windows[id];
     if (!win.isOpen) {
       openWindow(id);
-    } else if (win.isMinimized) {
-      focusWindow(id);
-    } else {
-      focusWindow(id);
-    }
-  }; {
-    const win = windows[id];
-    if (!win.isOpen) {
-      openWindow(id);
-    } else if (win.isMinimized) {
-      focusWindow(id);
     } else {
       focusWindow(id);
     }
@@ -124,7 +110,7 @@ export const Taskbar: React.FC = () => {
             <button
               key={app.id}
               onClick={() => handleAppClick(app.id)}
-              className={`relative group px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all duration-200 ${
+              className={`relative group px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all duration-200 cursor-pointer ${
                 isActive
                   ? 'bg-white/10 shadow-[0_0_15px_rgba(0,245,255,0.15)] border border-white/15'
                   : 'hover:bg-white/5 border border-transparent'
