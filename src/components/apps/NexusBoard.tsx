@@ -5,7 +5,7 @@ import { useOSStore } from '@/store/useOSStore';
 import { ClueItem } from '@/types/os';
 import { DndProvider, useDrag, useDrop, useDragLayer } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Plus, Network, GitBranch, Server, FileText, Link2, Radio, Shield } from 'lucide-react';
+import { Plus, Network, GitBranch, Server, FileText, Link2, Shield, Pin } from 'lucide-react';
 import { useAudio } from '@/context/AudioContext';
 
 const CARD_POSITIONS: Record<string, { x: number; y: number }> = {
@@ -36,7 +36,7 @@ const DragPreview = () => {
         left: clientOffset.x,
         top: clientOffset.y,
         transform: 'translate(-50%, -50%)',
-        opacity: 0.9,
+        opacity: 0.95,
         zIndex: 9999,
         width: 250,
         padding: '0.85rem',
@@ -46,11 +46,11 @@ const DragPreview = () => {
         color: '#fca5a5',
         fontSize: '0.75rem',
         fontFamily: 'monospace',
-        boxShadow: '0 0 25px rgba(239, 68, 68, 0.5)',
+        boxShadow: '0 0 30px rgba(239, 68, 68, 0.6)',
       }}
     >
-      <div className="font-bold mb-1">🔗 Соединение с карточкой</div>
-      <div className="text-[11px] text-slate-300">Наведите на вторую улику для замыкания цепи</div>
+      <div className="font-bold mb-1">🔗 Натянуть нить расследования</div>
+      <div className="text-[11px] text-slate-300">Соедините с карточкой для корреляции</div>
     </div>
   );
 };
@@ -108,15 +108,20 @@ const ClueCard: React.FC<CardProps> = ({ clue, isSelected, onSelect, onDropConne
       ref={elementRef}
       onClick={() => onSelect(clue.id)}
       style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
-      className={`absolute w-64 p-4 rounded-xl backdrop-blur-md cursor-pointer transition-all duration-200 z-10 select-none ${
+      className={`absolute w-64 p-4 rounded-xl cursor-pointer transition-all duration-200 z-10 select-none polaroid-card ${
         isSelected
-          ? 'ring-2 ring-amber-400 bg-amber-950/80 shadow-[0_0_25px_rgba(245,158,11,0.35)]'
+          ? 'ring-2 ring-amber-400 bg-[#1e2538] shadow-[0_0_30px_rgba(245,158,11,0.45)]'
           : isOver
           ? 'ring-2 ring-rose-500 bg-rose-950/90 shadow-[0_0_35px_rgba(244,63,94,0.6)] drop-target-active'
-          : 'bg-[#181d2f]/90 hover:bg-[#1f263d] border border-white/10 hover:border-amber-500/40 shadow-xl'
+          : 'bg-[#151a2a]/95 hover:bg-[#1a2238] border border-white/10 hover:border-amber-500/40'
       } ${isDragging ? 'opacity-25 scale-95' : ''}`}
     >
-      <div className="flex items-center gap-2 mb-2">
+      {/* Decorative Red Pushpin */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex items-center justify-center">
+        <div className="pushpin" />
+      </div>
+
+      <div className="flex items-center gap-2 mb-2 pt-1">
         {getCategoryIcon(clue.category)}
         <span className="text-xs font-mono font-bold text-amber-300 truncate">
           {clue.title}
@@ -127,7 +132,7 @@ const ClueCard: React.FC<CardProps> = ({ clue, isSelected, onSelect, onDropConne
       </p>
       <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
         <span className="truncate max-w-[170px]">{clue.foundAt}</span>
-        <Link2 className="w-3 h-3 text-cyan-400 shrink-0" />
+        <Link2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
       </div>
     </div>
   );
@@ -182,9 +187,9 @@ export const NexusBoard: React.FC = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <DragPreview />
-      <div className="flex-1 flex flex-col bg-[#0f121d] text-slate-100 overflow-hidden font-sans relative">
+      <div className="flex-1 flex flex-col bg-[#0b0e17] text-slate-100 overflow-hidden font-sans relative">
         {/* Toolbar */}
-        <div className="px-4 py-2.5 bg-[#171b2b] border-b border-amber-500/20 flex items-center justify-between z-10">
+        <div className="px-4 py-2.5 bg-[#121624] border-b border-amber-500/20 flex items-center justify-between z-10">
           <div className="flex items-center gap-2">
             <Network className="w-4 h-4 text-amber-400" />
             <span className="text-xs font-mono font-bold text-amber-300">
@@ -211,34 +216,49 @@ export const NexusBoard: React.FC = () => {
           </div>
         </div>
 
-        {/* Canvas */}
+        {/* Canvas (Corkboard effect with subtle cyber grid) */}
         <div
           className="flex-1 relative overflow-auto p-8"
           style={{
-            backgroundImage:
-              'radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
+            backgroundColor: '#0a0d16',
+            backgroundImage: `
+              radial-gradient(circle, rgba(245, 158, 11, 0.05) 1px, transparent 1px),
+              linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+            `,
+            backgroundSize: '32px 32px, 64px 64px, 64px 64px',
           }}
         >
-          {/* SVG connections */}
+          {/* SVG realistic red detective yarn strings */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
             {clueConnections.map(([idA, idB], idx) => {
               const posA = CARD_POSITIONS[idA] || { x: 100, y: 100 };
               const posB = CARD_POSITIONS[idB] || { x: 300, y: 300 };
               return (
                 <g key={idx}>
+                  {/* Subtle string drop shadow */}
                   <line
-                    x1={posA.x + 130}
-                    y1={posA.y + 60}
-                    x2={posB.x + 130}
-                    y2={posB.y + 60}
+                    x1={posA.x + 128}
+                    y1={posA.y + 4}
+                    x2={posB.x + 128}
+                    y2={posB.y + 4}
+                    stroke="rgba(0, 0, 0, 0.6)"
+                    strokeWidth="3.5"
+                  />
+                  {/* Glowing red thread */}
+                  <line
+                    x1={posA.x + 128}
+                    y1={posA.y + 2}
+                    x2={posB.x + 128}
+                    y2={posB.y + 2}
                     stroke="#ef4444"
                     strokeWidth="2.5"
                     strokeDasharray="4 2"
                     className="animate-pulse"
                   />
-                  <circle cx={posA.x + 130} cy={posA.y + 60} r="4" fill="#ef4444" />
-                  <circle cx={posB.x + 130} cy={posB.y + 60} r="4" fill="#ef4444" />
+                  {/* Pushpin anchors */}
+                  <circle cx={posA.x + 128} cy={posA.y + 2} r="5" fill="#f43f5e" />
+                  <circle cx={posB.x + 128} cy={posB.y + 2} r="5" fill="#f43f5e" />
                 </g>
               );
             })}
@@ -269,7 +289,7 @@ export const NexusBoard: React.FC = () => {
             Улик собрано: <span className="text-amber-300 font-bold">{discoveredClues.length}</span>
           </div>
           <div>
-            Связей протянуто: <span className="text-cyan-400 font-bold">{clueConnections.length}</span>
+            Связей протянуто: <span className="text-rose-400 font-bold">{clueConnections.length}</span>
           </div>
         </div>
       </div>
