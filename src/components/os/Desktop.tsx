@@ -9,6 +9,7 @@ import { NetSurf } from '@/components/apps/NetSurf';
 import { NexusBoard } from '@/components/apps/NexusBoard';
 import { Terminal } from '@/components/apps/Terminal';
 import { MailClient } from '@/components/apps/MailClient';
+import { CityMap } from '@/components/apps/CityMap';
 import { ClimaxModal } from '@/components/apps/ClimaxModal';
 import { PhaseInterlude } from './PhaseInterlude';
 import { TutorialBanner } from './TutorialBanner';
@@ -86,6 +87,12 @@ export const Desktop: React.FC = () => {
       {windows.mail.isOpen && (
         <WindowFrame window={windows.mail}>
           <MailClient />
+        </WindowFrame>
+      )}
+
+      {windows.citymap?.isOpen && (
+        <WindowFrame window={windows.citymap}>
+          <CityMap />
         </WindowFrame>
       )}
 

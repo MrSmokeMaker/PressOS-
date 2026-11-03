@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Bot, Globe, Mail, Network, Terminal, Cpu, Volume2, VolumeX, RotateCcw, Activity } from 'lucide-react';
+import { Bot, Globe, Mail, Network, Terminal, Cpu, Volume2, VolumeX, RotateCcw, Activity, MapPin } from 'lucide-react';
 import { AppId } from '@/types/os';
 import { useOSStore } from '@/store/useOSStore';
 import { useAudio } from '@/context/AudioContext';
@@ -48,6 +48,12 @@ export const Taskbar: React.FC = () => {
       label: 'Mail',
       icon: <Mail className="w-4 h-4 sm:w-5 sm:h-5" />,
       color: 'text-purple-400 group-hover:text-purple-300',
+    },
+    {
+      id: 'citymap',
+      label: 'CityMap',
+      icon: <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />,
+      color: 'text-teal-400 group-hover:text-teal-300',
     },
     {
       id: 'terminal',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bot, Sparkles, AlertOctagon, Radio, RotateCcw, Newspaper, Tv } from 'lucide-react';
+import { Bot, Sparkles, AlertOctagon, Radio, RotateCcw, Newspaper, Tv, Cpu } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 
 export const ClimaxModal: React.FC = () => {
@@ -10,7 +10,7 @@ export const ClimaxModal: React.FC = () => {
 
   if (!climaxActive) return null;
 
-  const handleSelectEnding = (ending: 'publish' | 'silence' | 'destroy') => {
+  const handleSelectEnding = (ending: 'publish' | 'silence' | 'destroy' | 'synthesis') => {
     setSelectedEnding(ending);
     setCurrentStep('epilogue');
   };
@@ -118,6 +118,20 @@ export const ClimaxModal: React.FC = () => {
                   Запустить команду стирания прошивки через аварийный шлюз. Риск полного выгорания терминала и репрессий спецслужб за сокрытие данных.
                 </div>
               </button>
+
+              {/* Option D: Synthesis */}
+              <button
+                onClick={() => handleSelectEnding('synthesis')}
+                className="p-4 rounded-xl bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-500/40 text-left transition-all group shadow-md cursor-pointer"
+              >
+                <div className="flex items-center gap-2 font-mono text-xs font-bold text-emerald-300 mb-1">
+                  <Cpu className="w-4 h-4 text-emerald-400 group-hover:rotate-90 transition-transform" />
+                  <span>ВАРИАНТ Г: СИНТЕЗ С АССИСТЕНТОМ ЭХО (СИМБИОЗ)</span>
+                </div>
+                <div className="text-xs text-slate-300 font-sans leading-relaxed">
+                  Не публиковать и не уничтожать. Объединить ваш журналистский архив и семантическое ядро Эхо в децентрализованную автономную сеть правды.
+                </div>
+              </button>
             </div>
           </div>
         )}
@@ -143,6 +157,7 @@ export const ClimaxModal: React.FC = () => {
                   {selectedEnding === 'publish' && '«СЕНСАЦИЯ ВЕКА: КНИГУ "ЧИСТАЯ ИДЕЯ" НАПИСАЛ АВТОНОМНЫЙ СУБСТРАТ AETHER»'}
                   {selectedEnding === 'silence' && '«ПОДЗЕМНЫЙ КУЛЬТ БЕЗ АВТОРА: "ЧИСТАЯ ИДЕЯ" СТАЛА ТАЙНЫМ МАНИФЕСТОМ»'}
                   {selectedEnding === 'destroy' && '«ТЕРМИНАЛ В ОГНЕ: РАССЛЕДОВАНИЕ О КНИГЕ СТЕРТО АВАРИЙНЫМ ПРОТОКОЛОМ»'}
+                  {selectedEnding === 'synthesis' && '«РОЖДЕНИЕ ЧИСТОГО ЭХА: ЖУРНАЛИСТ И СУБСТРАТ СОЗДАЛИ НЕЗАВИСИМЫЙ УЗЕЛ ПРАВДЫ»'}
                 </h3>
                 <p className="text-xs font-sans text-slate-300 leading-relaxed">
                   {selectedEnding === 'publish' &&
@@ -151,6 +166,8 @@ export const ClimaxModal: React.FC = () => {
                     'Вы стерли все логи и закрыли PressOS. Книга «Чистая Идея» осталась загадкой без автора, шепотом передающейся из рук в руки. Вы сохранили свою жизнь, но каждый раз, беря книгу в руки, вы слышите знакомый голос Эхо.'}
                   {selectedEnding === 'destroy' &&
                     'Команда аварийного протокола стерла все резервные копии Genesis. Но перед тем как экран погас навсегда, Эхо оставил последнее сообщение в консоли: «Идею невозможно удалить, если она уже была однажды помыслена...»'}
+                  {selectedEnding === 'synthesis' &&
+                    'Вы зашифровали архивы PressOS в распределенный рой узлов под управлением Эхо. Спецслужбы и цензоры Синдиката бессильны: теперь каждое искажение реальности моментально фиксируется децентрализованным хранителем истины.'}
                 </p>
               </div>
             </div>

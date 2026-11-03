@@ -1,4 +1,4 @@
-export type AppId = 'echo' | 'netsurf' | 'nexus' | 'terminal' | 'mail';
+export type AppId = 'echo' | 'netsurf' | 'nexus' | 'terminal' | 'mail' | 'citymap';
 
 export type StoryPhase = 1 | 2 | 3 | 'climax';
 

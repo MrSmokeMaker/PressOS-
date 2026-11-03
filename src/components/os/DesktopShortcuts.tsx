@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Bot, Globe, Mail, Network, Terminal, FileText, FolderGit2 } from 'lucide-react';
+import { Bot, Globe, Mail, Network, Terminal, FileText, FolderGit2, MapPin } from 'lucide-react';
 import { AppId } from '@/types/os';
 import { useOSStore } from '@/store/useOSStore';
 import { useAudio } from '@/context/AudioContext';
@@ -47,6 +47,12 @@ export const DesktopShortcuts: React.FC = () => {
       label: 'Nexus Board',
       icon: <Network className="w-6 h-6 sm:w-7 sm:h-7 text-amber-400 group-hover:scale-110 transition-transform" />,
       color: 'from-amber-900/40 via-amber-950/20 to-transparent border-amber-500/30',
+    },
+    {
+      id: 'citymap',
+      label: 'CityMap',
+      icon: <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-teal-400 group-hover:scale-110 transition-transform" />,
+      color: 'from-teal-900/40 via-teal-950/20 to-transparent border-teal-500/30',
     },
     {
       id: 'terminal',

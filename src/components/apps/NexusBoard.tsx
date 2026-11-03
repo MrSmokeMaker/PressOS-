@@ -14,6 +14,8 @@ const CARD_POSITIONS: Record<string, { x: number; y: number }> = {
   'clue-tx': { x: 560, y: 80 },
   'clue-audio-glitch': { x: 560, y: 280 },
   'clue-git-blame': { x: 40, y: 280 },
+  'clue-eeg-scan': { x: 40, y: 460 },
+  'clue-courier-manifest': { x: 560, y: 460 },
   'clue-defense-blacklist': { x: 300, y: 380 },
   'clue-core': { x: 300, y: 20 },
 };

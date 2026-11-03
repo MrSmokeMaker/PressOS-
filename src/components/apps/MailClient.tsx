@@ -16,6 +16,7 @@ export const MailClient: React.FC = () => {
     tutorialStep,
     setTutorialStep,
     openWindow,
+    addClue,
   } = useOSStore();
   const [selectedMailId, setSelectedMailId] = useState<string>(emails[0]?.id || 'mail-1');
   const [gatewayError, setGatewayError] = useState<string | null>(null);
@@ -72,6 +73,32 @@ export const MailClient: React.FC = () => {
       setTutorialStep('inspect_site');
       openWindow('netsurf');
       openWindow('echo');
+    }
+
+    if (mail.id === 'mail-2') {
+      addClue({
+        id: 'clue-audio-glitch',
+        title: 'Акустическая гармоника 18.4 кГц',
+        category: 'delivery',
+        content: 'При перелистывании страниц микрофон улавливает высокочастотный шепот. Кодовая модуляция страниц книги.',
+        source: 'Итан // Лавка редких книг',
+        foundAt: 'Входящее письмо (PressMail)',
+        position: { x: 560, y: 280 },
+        connections: [],
+      });
+    }
+
+    if (mail.id === 'mail-5') {
+      addClue({
+        id: 'clue-eeg-scan',
+        title: 'ЭЭГ: Нейро-синхронизация читателей',
+        category: 'origin',
+        content: 'Энцефалограмма подтверждает: чтение страниц активирует резонанс 18.4 кГц в коре головного мозга. Эхо и книга используют единый паттерн.',
+        source: 'Доктор Карина Вайс // Клиника №3',
+        foundAt: 'Входящее письмо (PressMail)',
+        position: { x: 40, y: 460 },
+        connections: [],
+      });
     }
   };
 

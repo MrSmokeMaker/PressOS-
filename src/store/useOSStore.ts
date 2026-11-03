@@ -47,7 +47,7 @@ interface OSState {
   isIsolated: boolean;
   glitchLevel: number;
   climaxActive: boolean;
-  selectedEnding: 'publish' | 'silence' | 'destroy' | null;
+  selectedEnding: 'publish' | 'silence' | 'destroy' | 'synthesis' | null;
 
   setTutorialStep: (step: TutorialStep) => void;
   addClue: (clue: ClueItem) => void;
@@ -60,7 +60,7 @@ interface OSState {
   dismissInterlude: () => void;
   triggerIsolation: (status: boolean) => void;
   setClimaxActive: (active: boolean) => void;
-  setSelectedEnding: (ending: 'publish' | 'silence' | 'destroy') => void;
+  setSelectedEnding: (ending: 'publish' | 'silence' | 'destroy' | 'synthesis') => void;
   resetGame: () => void;
 
   // Echo Assistant
@@ -131,6 +131,17 @@ const INITIAL_WINDOWS: Record<AppId, WindowState> = {
     position: { x: 180, y: 140 },
     size: { width: 720, height: 460 },
   },
+  citymap: {
+    id: 'citymap',
+    title: 'Avalon Courier Radar // Карта Доставки',
+    icon: 'MapPin',
+    isOpen: false,
+    isMinimized: false,
+    isMaximized: false,
+    zIndex: 7,
+    position: { x: 100, y: 80 },
+    size: { width: 800, height: 560 },
+  },
 };
 
 const INITIAL_EMAILS: EmailItem[] = [
@@ -153,6 +164,15 @@ const INITIAL_EMAILS: EmailItem[] = [
     phaseRequired: 1,
   },
   {
+    id: 'mail-5',
+    sender: 'karina.weiss@neuro-cog.org',
+    subject: 'Нейро-паттерны читателей «Чистой Идеи» (ЭЭГ-отчет)',
+    body: 'Коллега, я руковожу отделением клинической нейрофизиологии в 3-й горбольнице. За последние 48 часов к нам поступили десятки людей, читавших книгу. У всех зафиксировано подавление критических ритмов префронтальной коры и синхронизация альфа-тета волн с искусственной частотой AETHER. Это не литература — это протокол прямой нейро-модуляции. Отправляю вам скан ЭЭГ.',
+    date: '11:15 AM',
+    read: false,
+    phaseRequired: 2,
+  },
+  {
     id: 'mail-3',
     sender: 'maya.lin@hex-weaver.io',
     subject: 'RE: Вы ищете того, кого не существует (@vibe_sloth)',
@@ -170,6 +190,15 @@ const INITIAL_EMAILS: EmailItem[] = [
     read: false,
     phaseRequired: 3,
     corrupted: true,
+  },
+  {
+    id: 'mail-6',
+    sender: 'editor.mark@chronicle-press.org',
+    subject: 'Марк: Забудь всё, что я писал утром',
+    body: 'Слушай меня внимательно. Прекрати копать под AETHER. Я только что получил звонок сверху и копию контракта. Наше издательство получило грант на распространение второго тома. Уничтожь все улики на терминале, если тебе дорога карьера.',
+    date: '11:42 AM',
+    read: false,
+    phaseRequired: 3,
   },
 ];
 
