@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Minus, Square, X } from 'lucide-react';
+import { Minus, Square, Copy, X, Mail, Globe, Bot, Network, Terminal, MapPin, FileText } from 'lucide-react';
 import { AppId, WindowState } from '@/types/os';
 import { useOSStore } from '@/store/useOSStore';
 
@@ -9,6 +9,27 @@ interface WindowFrameProps {
   window: WindowState;
   children: React.ReactNode;
 }
+
+const getAppIcon = (id: AppId) => {
+  switch (id) {
+    case 'mail':
+      return <Mail className="w-3.5 h-3.5 text-purple-400 shrink-0" />;
+    case 'netsurf':
+      return <Globe className="w-3.5 h-3.5 text-sky-400 shrink-0" />;
+    case 'echo':
+      return <Bot className="w-3.5 h-3.5 text-cyan-400 shrink-0" />;
+    case 'nexus':
+      return <Network className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+    case 'terminal':
+      return <Terminal className="w-3.5 h-3.5 text-emerald-400 shrink-0" />;
+    case 'citymap':
+      return <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />;
+    case 'notepad':
+      return <FileText className="w-3.5 h-3.5 text-sky-300 shrink-0" />;
+    default:
+      return null;
+  }
+};
 
 export const WindowFrame: React.FC<WindowFrameProps> = ({ window: win, children }) => {
   const {
@@ -134,34 +155,33 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ window: win, children 
     <div
       onPointerDown={handlePointerDown}
       style={isMobile ? mobileStyles : desktopStyles}
-      className={`border flex flex-col overflow-hidden transition-shadow duration-300 ${
-        isMobile ? 'rounded-none border-b-0' : 'rounded-2xl'
+      className={`border flex flex-col overflow-hidden transition-shadow duration-200 ${
+        isMobile ? 'rounded-none border-b-0' : 'rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7)]'
       } ${getAppStyle(win.id)}`}
     >
-      {/* Titlebar Header */}
+      {/* Titlebar Header - Windows Style */}
       <div
         onPointerDown={handleHeaderPointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className={`h-9 bg-gradient-to-r ${getHeaderAccent(
-          win.id
-        )} border-b px-3 flex items-center justify-between select-none ${
+        onDoubleClick={() => !isMobile && toggleMaximizeWindow(win.id)}
+        className={`h-9 bg-[#181c26]/95 border-b border-white/10 flex items-center justify-between select-none ${
           isMobile ? '' : 'cursor-move'
         } shrink-0`}
       >
-        {/* Left: Window Title and Cyber Indicator */}
-        <div className="flex items-center gap-2 truncate pointer-events-none">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
-          <span className="text-xs font-mono font-semibold tracking-wider truncate">
+        {/* Left: Window Icon and Title */}
+        <div className="flex items-center gap-2 pl-3 truncate pointer-events-none">
+          {getAppIcon(win.id)}
+          <span className="text-xs font-sans font-medium text-slate-200 tracking-normal truncate">
             {win.title}
           </span>
         </div>
 
-        {/* Right: Window Controls */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Right: Windows Window Controls (Minimize, Maximize, Red Close) */}
+        <div className="flex items-center h-full shrink-0">
           <button
             onClick={() => minimizeWindow(win.id)}
-            className="w-6 h-6 rounded-md hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="h-full px-3 hover:bg-white/10 active:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
             title="Свернуть"
           >
             <Minus className="w-3.5 h-3.5" />
@@ -169,15 +189,15 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ window: win, children 
           {!isMobile && (
             <button
               onClick={() => toggleMaximizeWindow(win.id)}
-              className="w-6 h-6 rounded-md hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
-              title="Развернуть"
+              className="h-full px-3 hover:bg-white/10 active:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+              title={win.isMaximized ? 'Восстановить' : 'Развернуть'}
             >
-              <Square className="w-3 h-3" />
+              {win.isMaximized ? <Copy className="w-3 h-3 rotate-180" /> : <Square className="w-3 h-3" />}
             </button>
           )}
           <button
             onClick={() => closeWindow(win.id)}
-            className="w-6 h-6 rounded-md hover:bg-rose-500/20 hover:text-rose-400 flex items-center justify-center text-slate-400 transition-colors cursor-pointer"
+            className="h-full px-3.5 hover:bg-[#e81123] hover:text-white active:bg-[#c4101f] flex items-center justify-center text-slate-400 transition-colors cursor-pointer"
             title="Закрыть"
           >
             <X className="w-3.5 h-3.5" />

@@ -142,6 +142,17 @@ const INITIAL_WINDOWS: Record<AppId, WindowState> = {
     position: { x: 100, y: 80 },
     size: { width: 800, height: 560 },
   },
+  notepad: {
+    id: 'notepad',
+    title: 'Дело_Чистая_Идея.txt — Блокнот',
+    icon: 'FileText',
+    isOpen: false,
+    isMinimized: false,
+    isMaximized: false,
+    zIndex: 7,
+    position: { x: 220, y: 110 },
+    size: { width: 640, height: 480 },
+  },
 };
 
 const INITIAL_EMAILS: EmailItem[] = [

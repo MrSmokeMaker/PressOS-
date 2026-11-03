@@ -10,6 +10,7 @@ import { NexusBoard } from '@/components/apps/NexusBoard';
 import { Terminal } from '@/components/apps/Terminal';
 import { MailClient } from '@/components/apps/MailClient';
 import { CityMap } from '@/components/apps/CityMap';
+import { Notepad } from '@/components/apps/Notepad';
 import { ClimaxModal } from '@/components/apps/ClimaxModal';
 import { PhaseInterlude } from './PhaseInterlude';
 import { TutorialBanner } from './TutorialBanner';
@@ -33,10 +34,10 @@ export const Desktop: React.FC = () => {
         backgroundSize: '100% 100%, 100% 100%, 40px 40px, 40px 40px',
       }}
     >
-      {/* OS Ambient System Watermark */}
-      <div className="absolute bottom-20 right-8 pointer-events-none select-none text-right font-mono opacity-15 hidden sm:block">
-        <div className="text-4xl font-extrabold text-cyan-400 tracking-widest">PRESS-OS</div>
-        <div className="text-xs text-slate-400">KERNEL v6.12 // HARDENED JOURNALIST TERMINAL</div>
+      {/* Windows Ambient System Watermark */}
+      <div className="absolute bottom-16 right-6 pointer-events-none select-none text-right font-sans opacity-25 hidden sm:block">
+        <div className="text-sm font-semibold text-slate-300 tracking-wide">PressOS 11 Pro</div>
+        <div className="text-[11px] text-slate-400 font-mono">Сборка 26100.2161 (Журналистское издание)</div>
       </div>
 
       {/* Desktop Application Shortcuts Grid */}
@@ -93,6 +94,12 @@ export const Desktop: React.FC = () => {
       {windows.citymap?.isOpen && (
         <WindowFrame window={windows.citymap}>
           <CityMap />
+        </WindowFrame>
+      )}
+
+      {windows.notepad?.isOpen && (
+        <WindowFrame window={windows.notepad}>
+          <Notepad />
         </WindowFrame>
       )}
 
