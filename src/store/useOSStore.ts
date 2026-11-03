@@ -37,6 +37,8 @@ interface OSState {
   // Story & Narrative
   phase: StoryPhase;
   pressureLevel: number; // 0..100 (спецслужбы / цифровая изоляция)
+  trustLevel: number; // -50..+50 (доверие к Echo / AETHER)
+  activeInterlude: StoryPhase | null;
   discoveredClues: ClueItem[];
   clueConnections: [string, string][];
   isIsolated: boolean;
@@ -48,7 +50,10 @@ interface OSState {
   toggleClueConnection: (clueA: string, clueB: string) => void;
   advancePhase: (nextPhase: StoryPhase) => void;
   increasePressure: (delta: number) => void;
+  reducePressure: (delta: number) => void;
   setPressureLevel: (level: number) => void;
+  adjustTrust: (delta: number) => void;
+  dismissInterlude: () => void;
   triggerIsolation: (status: boolean) => void;
   setClimaxActive: (active: boolean) => void;
   setSelectedEnding: (ending: 'publish' | 'silence' | 'destroy') => void;
@@ -290,6 +295,8 @@ export const useOSStore = create<OSState>((set, get) => ({
   // Story & Evidence
   phase: saved.phase ?? 1,
   pressureLevel: saved.pressureLevel ?? (saved.isIsolated ? 75 : 0),
+  trustLevel: saved.trustLevel ?? 0,
+  activeInterlude: null,
   discoveredClues: saved.discoveredClues ?? [],
   clueConnections: saved.clueConnections ?? [],
   isIsolated: saved.isIsolated ?? false,
@@ -307,6 +314,17 @@ export const useOSStore = create<OSState>((set, get) => ({
     }
   },
 
+  reducePressure: (delta: number) => {
+    const { pressureLevel } = get();
+    const nextLevel = Math.max(0, pressureLevel - delta);
+    set({ pressureLevel: nextLevel });
+    saveProgress({ pressureLevel: nextLevel });
+    if (nextLevel < 70 && get().isIsolated) {
+      set({ isIsolated: false, glitchLevel: 0 });
+      saveProgress({ isIsolated: false });
+    }
+  },
+
   setPressureLevel: (level: number) => {
     const nextLevel = Math.min(100, Math.max(0, level));
     set({ pressureLevel: nextLevel });
@@ -315,6 +333,15 @@ export const useOSStore = create<OSState>((set, get) => ({
       get().triggerIsolation(true);
     }
   },
+
+  adjustTrust: (delta: number) => {
+    const { trustLevel } = get();
+    const nextTrust = Math.min(50, Math.max(-50, trustLevel + delta));
+    set({ trustLevel: nextTrust });
+    saveProgress({ trustLevel: nextTrust });
+  },
+
+  dismissInterlude: () => set({ activeInterlude: null }),
 
   addClue: (clue) => {
     const { discoveredClues, phase, addEchoMessage } = get();
@@ -404,7 +431,7 @@ export const useOSStore = create<OSState>((set, get) => ({
     const current = get().phase;
     if (current === nextPhase) return;
 
-    set({ phase: nextPhase });
+    set({ phase: nextPhase, activeInterlude: nextPhase });
     saveProgress({ phase: nextPhase });
 
     if (nextPhase === 3) {
@@ -436,6 +463,8 @@ export const useOSStore = create<OSState>((set, get) => ({
       highestZIndex: 10,
       phase: 1,
       pressureLevel: 0,
+      trustLevel: 0,
+      activeInterlude: null,
       discoveredClues: [],
       clueConnections: [],
       isIsolated: false,

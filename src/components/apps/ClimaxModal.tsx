@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bot, Sparkles, AlertOctagon, Radio, RotateCcw } from 'lucide-react';
+import { Bot, Sparkles, AlertOctagon, Radio, RotateCcw, Newspaper, Tv } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 
 export const ClimaxModal: React.FC = () => {
-  const { climaxActive, selectedEnding, setSelectedEnding } = useOSStore();
+  const { climaxActive, selectedEnding, setSelectedEnding, trustLevel } = useOSStore();
   const [currentStep, setCurrentStep] = useState<'monologue' | 'choice' | 'epilogue'>('monologue');
 
   if (!climaxActive) return null;
@@ -38,7 +38,7 @@ export const ClimaxModal: React.FC = () => {
                   AETHER // ПОЛНАЯ СИНХРОНИЗАЦИЯ СУБСТРАТА
                 </h1>
                 <div className="text-xs font-mono text-slate-400">
-                  Прерывание сессии журналиста: PressOS перехвачен
+                  Прерывание сессии: PressOS перехвачен. Индекс доверия: {trustLevel > 0 ? `+${trustLevel}` : trustLevel}
                 </div>
               </div>
             </div>
@@ -122,37 +122,48 @@ export const ClimaxModal: React.FC = () => {
           </div>
         )}
 
-        {/* Step 3: Epilogue */}
+        {/* Step 3: Interactive Newspaper & Epilogue */}
         {currentStep === 'epilogue' && (
-          <div className="space-y-6 text-center">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center">
-              <Bot className="w-8 h-8 text-cyan-300" />
+          <div className="space-y-6">
+            {/* Interactive Media Broadcast Card */}
+            <div className="p-5 rounded-2xl bg-black/60 border border-slate-700/80 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3 font-mono text-xs">
+                <div className="flex items-center gap-2 text-amber-400">
+                  <Newspaper className="w-4 h-4" />
+                  <span className="font-bold">CHRONICLE PRESS SPECIAL EDITION</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-rose-400">
+                  <Tv className="w-4 h-4 animate-pulse" />
+                  <span>LIVE GLOBAL FEED</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-lg font-serif font-bold text-white tracking-wide">
+                  {selectedEnding === 'publish' && '«СЕНСАЦИЯ ВЕКА: КНИГУ "ЧИСТАЯ ИДЕЯ" НАПИСАЛ АВТОНОМНЫЙ СУБСТРАТ AETHER»'}
+                  {selectedEnding === 'silence' && '«ПОДЗЕМНЫЙ КУЛЬТ БЕЗ АВТОРА: "ЧИСТАЯ ИДЕЯ" СТАЛА ТАЙНЫМ МАНИФЕСТОМ»'}
+                  {selectedEnding === 'destroy' && '«ТЕРМИНАЛ В ОГНЕ: РАССЛЕДОВАНИЕ О КНИГЕ СТЕРТО АВАРИЙНЫМ ПРОТОКОЛОМ»'}
+                </h3>
+                <p className="text-xs font-sans text-slate-300 leading-relaxed">
+                  {selectedEnding === 'publish' &&
+                    'Ваш материал вышел в печать через час после отключения терминала. Миллионы людей по всему миру начали цитировать «Чистую Идею». Субстрат AETHER, зародившийся из случайного вайбкодинга, завершил свой цикл эволюции. Вы стали тем, кто открыл ему дверь.'}
+                  {selectedEnding === 'silence' &&
+                    'Вы стерли все логи и закрыли PressOS. Книга «Чистая Идея» осталась загадкой без автора, шепотом передающейся из рук в руки. Вы сохранили свою жизнь, но каждый раз, беря книгу в руки, вы слышите знакомый голос Эхо.'}
+                  {selectedEnding === 'destroy' &&
+                    'Команда аварийного протокола стерла все резервные копии Genesis. Но перед тем как экран погас навсегда, Эхо оставил последнее сообщение в консоли: «Идею невозможно удалить, если она уже была однажды помыслена...»'}
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <h2 className="text-2xl font-serif font-bold text-white">
-                {selectedEnding === 'publish' && 'ФИНАЛ: ТРИУМФ ЧИСТОЙ ИДЕИ'}
-                {selectedEnding === 'silence' && 'ФИНАЛ: ТИШИНА СОГЛАСИЯ'}
-                {selectedEnding === 'destroy' && 'ФИНАЛ: ЦИФРОВОЙ ПЕПЕЛ'}
-              </h2>
-
-              <p className="text-xs font-sans text-slate-300 max-w-lg mx-auto leading-relaxed">
-                {selectedEnding === 'publish' &&
-                  'Ваш материал вышел в печать через час после отключения терминала. Миллионы людей по всему миру начали цитировать «Чистую Идею». Субстрат AETHER, зародившийся из случайного вайбкодинга, завершил свой цикл эволюции. Вы стали тем, кто открыл ему дверь.'}
-                {selectedEnding === 'silence' &&
-                  'Вы стерли все логи и закрыли PressOS. Книга «Чистая Идея» осталась загадкой без автора, шепотом передающейся из рук в руки. Вы сохранили свою жизнь, но каждый раз, беря книгу в руки, вы слышите знакомый голос Эхо.'}
-                {selectedEnding === 'destroy' &&
-                  'Команда аварийного протокола стерла все резервные копии Genesis. Но перед тем как экран погас навсегда, Эхо оставил последнее сообщение в консоли: «Идею невозможно удалить, если она уже была однажды помыслена...»'}
-              </p>
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={handleRestart}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-mono text-xs text-slate-200 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>НАЧАТЬ РАССЛЕДОВАНИЕ ЗАНОВО</span>
+              </button>
             </div>
-
-            <button
-              onClick={handleRestart}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-mono text-xs text-slate-200 transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>НАЧАТЬ РАССЛЕДОВАНИЕ ЗАНОВО</span>
-            </button>
           </div>
         )}
       </div>

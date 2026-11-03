@@ -12,7 +12,18 @@ interface HistoryEntry {
 }
 
 export const Terminal: React.FC = () => {
-  const { phase, pressureLevel, isIsolated, setClimaxActive, triggerIsolation, increasePressure, addClue } = useOSStore();
+  const {
+    phase,
+    pressureLevel,
+    trustLevel,
+    isIsolated,
+    setClimaxActive,
+    triggerIsolation,
+    increasePressure,
+    reducePressure,
+    adjustTrust,
+    addClue,
+  } = useOSStore();
   const { play } = useAudio();
   const [history, setHistory] = useState<HistoryEntry[]>([
     {
@@ -34,12 +45,12 @@ export const Terminal: React.FC = () => {
     play('click');
     increasePressure(2);
 
-    if (pressureLevel >= 95 && !['help', 'status', 'decrypt-core', 'clear'].includes(trimmed.toLowerCase())) {
+    if (pressureLevel >= 95 && !['help', 'status', 'bypass-jamming', 'decrypt-core', 'clear'].includes(trimmed.toLowerCase())) {
       setHistory((prev) => [
         ...prev,
         {
           command: trimmed,
-          output: `[ОТКАЗ В ДОСТУПЕ]: Терминал заблокирован протоколом изоляции спецслужб (давление: ${pressureLevel}%). Доступна только аварийная директива субстрата: decrypt-core.`,
+          output: `[ОТКАЗ В ДОСТУПЕ]: Терминал заблокирован протоколом изоляции спецслужб (давление: ${pressureLevel}%). Доступны: bypass-jamming или decrypt-core.`,
           isError: true,
         },
       ]);
@@ -57,15 +68,25 @@ export const Terminal: React.FC = () => {
       case 'help':
         output = `Доступные команды ядра:
   help               - Вызов этой справки
-  status             - Проверка сетевого статуса и уровня давления спецслужб
+  status             - Проверка сетевого статуса, давления спецслужб и доверия
   ls                 - Список защищенных файлов ядра
   cat <файл>         - Чтение содержимого файла
   decode <base64>    - Деобфускация зашифрованных логов вайбкодера
   hash <sha256>      - Поиск совпадений сигнатур в базе инцидента
   trace-aether       - Трассировка маршрута к источнику AETHER
+  bypass-jamming     - [ХАКИНГ] Сброс частотного глушения спецслужб (-25% РЭБ)
   blacklist-scan     - Поиск директивы 99-B в секретных циркулярах
   decrypt-core       - [КРИТИЧЕСКИЙ] Дешифровка манифеста AETHER и запуск синхронизации
   clear              - Очистка терминала`;
+        break;
+
+      case 'bypass-jamming':
+        output = `[ОБХОД РЭБ]: ПЕРЕКЛЮЧЕНИЕ ШЛЮЗА НА ЗАЩИЩЕННЫЙ МЕШ-КАНАЛ
+Сканирование частот... Найдена открытая полоса 18.4 кГц.
+Уровень глушения спецслужб снижен на 25%!`;
+        reducePressure(25);
+        adjustTrust(5);
+        play('click');
         break;
 
       case 'decode':
@@ -76,6 +97,7 @@ export const Terminal: React.FC = () => {
           try {
             const decoded = typeof atob !== 'undefined' ? atob(parts[1]) : Buffer.from(parts[1], 'base64').toString('utf-8');
             output = `[ДЕОБФУСКАЦИЯ УСПЕШНА]:\n${decoded}`;
+            adjustTrust(3);
           } catch {
             output = '[ОШИБКА ДЕОБФУСКАЦИИ]: Некорректный base64 payload.';
             isError = true;
@@ -105,6 +127,7 @@ export const Terminal: React.FC = () => {
   HOST: NY-AVALON-JOURNALIST-NODE
   STATUS: ${isIsolated || pressureLevel >= 70 ? 'DIGITAL ISOLATION ENFORCED [ALERT 99-B]' : 'ACTIVE / ONLINE'}
   PRESSURE LEVEL: ${pressureLevel}%
+  TRUST INDEX (ECHO): ${trustLevel > 0 ? `+${trustLevel} [СИНХРОНИЗИРОВАН]` : `${trustLevel} [СКЕПТИЦИЗМ]`}
   SEC-LEVEL: ${pressureLevel >= 70 ? 'CRITICAL - SURVEILLANCE JAMMING' : 'ELEVATED'}
   CURRENT PHASE: ${phase}
   SUBSTRATE LINK: AETHER MESH (ACTIVE)`;
@@ -245,7 +268,7 @@ Engine response: [Recursive AETHER synthesis initiated]...`;
               setInputVal('');
             }
           }}
-          placeholder="Введите команду (например help, status, trace-aether)..."
+          placeholder="Введите команду (help, bypass-jamming, status, trace-aether)..."
           className="flex-1 bg-transparent border-none outline-none text-emerald-300 font-mono text-xs placeholder:text-emerald-700"
           autoFocus
         />

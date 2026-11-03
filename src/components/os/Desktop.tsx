@@ -10,9 +10,10 @@ import { NexusBoard } from '@/components/apps/NexusBoard';
 import { Terminal } from '@/components/apps/Terminal';
 import { MailClient } from '@/components/apps/MailClient';
 import { ClimaxModal } from '@/components/apps/ClimaxModal';
+import { PhaseInterlude } from './PhaseInterlude';
 
 export const Desktop: React.FC = () => {
-  const { windows, isIsolated, climaxActive } = useOSStore();
+  const { windows, isIsolated, activeInterlude, dismissInterlude } = useOSStore();
 
   return (
     <main
@@ -29,6 +30,15 @@ export const Desktop: React.FC = () => {
         backgroundSize: '100% 100%, 100% 100%, 40px 40px, 40px 40px',
       }}
     >
+      {/* Cinematic Phase Interlude Overlay */}
+      {activeInterlude && (
+        <PhaseInterlude
+          phase={activeInterlude}
+          visible={Boolean(activeInterlude)}
+          onDismiss={dismissInterlude}
+        />
+      )}
+
       {/* Dynamic Digital Glitch Interference Overlay */}
       {isIsolated && (
         <div className="fixed inset-0 pointer-events-none z-40 bg-rose-500/10 mix-blend-screen opacity-80 crt-scanlines network-isolated-overlay" />
@@ -65,10 +75,10 @@ export const Desktop: React.FC = () => {
         </WindowFrame>
       )}
 
-      {/* Climax Narrative Modal */}
-      {climaxActive && <ClimaxModal />}
+      {/* Climax Epilogue Modal */}
+      <ClimaxModal />
 
-      {/* OS Bottom Taskbar */}
+      {/* OS Taskbar Dock */}
       <Taskbar />
     </main>
   );
