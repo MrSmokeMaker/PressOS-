@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useOSStore } from '@/store/useOSStore';
 import { ClueItem } from '@/types/os';
 import { DndProvider, useDrag, useDrop, useDragLayer } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Plus, Network, GitBranch, Server, FileText, Link2, Shield, Pin } from 'lucide-react';
+import { Plus, Network, GitBranch, Server, FileText, Link2, Shield } from 'lucide-react';
 import { useAudio } from '@/context/AudioContext';
 
 const CARD_POSITIONS: Record<string, { x: number; y: number }> = {
-  'clue-prompt': { x: 50, y: 80 },
-  'clue-server': { x: 320, y: 190 },
-  'clue-tx': { x: 600, y: 80 },
-  'clue-audio-glitch': { x: 600, y: 280 },
-  'clue-git-blame': { x: 50, y: 280 },
-  'clue-defense-blacklist': { x: 320, y: 390 },
-  'clue-core': { x: 320, y: 20 },
+  'clue-prompt': { x: 40, y: 80 },
+  'clue-server': { x: 300, y: 180 },
+  'clue-tx': { x: 560, y: 80 },
+  'clue-audio-glitch': { x: 560, y: 280 },
+  'clue-git-blame': { x: 40, y: 280 },
+  'clue-defense-blacklist': { x: 300, y: 380 },
+  'clue-core': { x: 300, y: 20 },
 };
 
 // Custom drag layer for preview
@@ -38,8 +38,8 @@ const DragPreview = () => {
         transform: 'translate(-50%, -50%)',
         opacity: 0.95,
         zIndex: 9999,
-        width: 250,
-        padding: '0.85rem',
+        width: 220,
+        padding: '0.75rem',
         background: 'rgba(20, 26, 43, 0.96)',
         border: '2px dashed #ef4444',
         borderRadius: '0.75rem',
@@ -49,8 +49,8 @@ const DragPreview = () => {
         boxShadow: '0 0 30px rgba(239, 68, 68, 0.6)',
       }}
     >
-      <div className="font-bold mb-1">🔗 Натянуть нить расследования</div>
-      <div className="text-[11px] text-slate-300">Соедините с карточкой для корреляции</div>
+      <div className="font-bold mb-1">🔗 Натянуть нить</div>
+      <div className="text-[10px] text-slate-300">Нажмите на вторую карточку для связи</div>
     </div>
   );
 };
@@ -73,11 +73,12 @@ const getCategoryIcon = (category: string) => {
 interface CardProps {
   clue: ClueItem;
   isSelected: boolean;
+  isMobile: boolean;
   onSelect: (id: string) => void;
   onDropConnection: (sourceId: string, targetId: string) => void;
 }
 
-const ClueCard: React.FC<CardProps> = ({ clue, isSelected, onSelect, onDropConnection }) => {
+const ClueCard: React.FC<CardProps> = ({ clue, isSelected, isMobile, onSelect, onDropConnection }) => {
   const [{ isDragging }, dragRef] = useDrag(() => ({
     type: 'CLUE',
     item: { id: clue.id },
@@ -101,38 +102,39 @@ const ClueCard: React.FC<CardProps> = ({ clue, isSelected, onSelect, onDropConne
   const elementRef = useRef<HTMLDivElement>(null);
   dragRef(dropRef(elementRef));
 
-  const pos = CARD_POSITIONS[clue.id] || { x: 100, y: 100 };
+  const pos = CARD_POSITIONS[clue.id] || { x: 50, y: 100 };
+
+  const inlineStyle = isMobile
+    ? {}
+    : { transform: `translate(${pos.x}px, ${pos.y}px)` };
 
   return (
     <div
       ref={elementRef}
       onClick={() => onSelect(clue.id)}
-      style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
-      className={`absolute w-64 p-4 rounded-xl cursor-pointer transition-all duration-200 z-10 select-none polaroid-card ${
+      style={inlineStyle}
+      className={`${
+        isMobile ? 'relative w-full' : 'absolute w-60'
+      } p-3.5 rounded-xl cursor-pointer transition-all duration-200 z-10 select-none polaroid-card ${
         isSelected
-          ? 'ring-2 ring-amber-400 bg-[#1e2538] shadow-[0_0_30px_rgba(245,158,11,0.45)]'
+          ? 'ring-2 ring-amber-400 bg-[#1e2538] shadow-[0_0_25px_rgba(245,158,11,0.45)]'
           : isOver
           ? 'ring-2 ring-rose-500 bg-rose-950/90 shadow-[0_0_35px_rgba(244,63,94,0.6)] drop-target-active'
           : 'bg-[#151a2a]/95 hover:bg-[#1a2238] border border-white/10 hover:border-amber-500/40'
       } ${isDragging ? 'opacity-25 scale-95' : ''}`}
     >
-      {/* Decorative Red Pushpin */}
-      <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex items-center justify-center">
-        <div className="pushpin" />
-      </div>
-
-      <div className="flex items-center gap-2 mb-2 pt-1">
+      <div className="flex items-center gap-2 mb-1.5 pt-1">
         {getCategoryIcon(clue.category)}
         <span className="text-xs font-mono font-bold text-amber-300 truncate">
           {clue.title}
         </span>
       </div>
-      <p className="text-xs text-slate-300 leading-relaxed font-sans mb-3 line-clamp-3">
+      <p className="text-[11px] text-slate-300 leading-relaxed font-sans mb-2 line-clamp-3">
         {clue.content}
       </p>
       <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
-        <span className="truncate max-w-[170px]">{clue.foundAt}</span>
-        <Link2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+        <span className="truncate max-w-[150px]">{clue.foundAt}</span>
+        <Link2 className="w-3 h-3 text-cyan-400 shrink-0" />
       </div>
     </div>
   );
@@ -149,6 +151,14 @@ export const NexusBoard: React.FC = () => {
   const { play } = useAudio();
 
   const [selectedClueId, setSelectedClueId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const hasPromptClue = discoveredClues.some((c) => c.id === 'clue-prompt');
 
@@ -187,38 +197,41 @@ export const NexusBoard: React.FC = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <DragPreview />
-      <div className="flex-1 flex flex-col bg-[#0b0e17] text-slate-100 overflow-hidden font-sans relative">
+      <div className="flex-1 flex flex-col bg-[#0b0e17] text-slate-100 overflow-hidden font-sans relative h-full w-full">
         {/* Toolbar */}
-        <div className="px-4 py-2.5 bg-[#121624] border-b border-amber-500/20 flex items-center justify-between z-10">
+        <div className="px-3 py-2 bg-[#121624] border-b border-amber-500/20 flex flex-wrap items-center justify-between gap-2 z-10 shrink-0">
           <div className="flex items-center gap-2">
-            <Network className="w-4 h-4 text-amber-400" />
+            <Network className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="text-xs font-mono font-bold text-amber-300">
-              NEXUS DETECTIVE CANVAS // КОРРЕЛЯЦИЯ УЛИК
+              NEXUS BOARD
             </span>
           </div>
-          <div className="flex items-center gap-3 text-xs font-mono">
+
+          <div className="flex items-center gap-2 text-[11px] font-mono">
             {selectedClueId ? (
               <span className="text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/40 animate-pulse">
-                Выберите вторую улику для соединения
+                Коснитесь 2-й улики для связи
               </span>
             ) : (
-              <span className="text-slate-400">Кликните или перетащите карточки друг на друга</span>
+              <span className="text-slate-400 hidden sm:inline">Кликните улики по очереди для связи</span>
             )}
             {(phase === 2 || phase === 3 || phase === 'climax') && !hasPromptClue && (
               <button
                 onClick={handleDiscoverPromptClue}
-                className="px-2.5 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-2 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Сканировать git-архив 2024 (@vibe_sloth)</span>
+                <Plus className="w-3 h-3" />
+                <span>Сканировать git-архив</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Canvas (Corkboard effect with subtle cyber grid) */}
+        {/* Canvas Area */}
         <div
-          className="flex-1 relative overflow-auto p-8"
+          className={`flex-1 relative ${
+            isMobile ? 'overflow-y-auto p-4 flex flex-col gap-3' : 'overflow-auto p-8'
+          }`}
           style={{
             backgroundColor: '#0a0d16',
             backgroundImage: `
@@ -229,46 +242,45 @@ export const NexusBoard: React.FC = () => {
             backgroundSize: '32px 32px, 64px 64px, 64px 64px',
           }}
         >
-          {/* SVG realistic red detective yarn strings */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-            {clueConnections.map(([idA, idB], idx) => {
-              const posA = CARD_POSITIONS[idA] || { x: 100, y: 100 };
-              const posB = CARD_POSITIONS[idB] || { x: 300, y: 300 };
-              return (
-                <g key={idx}>
-                  {/* Subtle string drop shadow */}
-                  <line
-                    x1={posA.x + 128}
-                    y1={posA.y + 4}
-                    x2={posB.x + 128}
-                    y2={posB.y + 4}
-                    stroke="rgba(0, 0, 0, 0.6)"
-                    strokeWidth="3.5"
-                  />
-                  {/* Glowing red thread */}
-                  <line
-                    x1={posA.x + 128}
-                    y1={posA.y + 2}
-                    x2={posB.x + 128}
-                    y2={posB.y + 2}
-                    stroke="#ef4444"
-                    strokeWidth="2.5"
-                    strokeDasharray="4 2"
-                    className="animate-pulse"
-                  />
-                  {/* Pushpin anchors */}
-                  <circle cx={posA.x + 128} cy={posA.y + 2} r="5" fill="#f43f5e" />
-                  <circle cx={posB.x + 128} cy={posB.y + 2} r="5" fill="#f43f5e" />
-                </g>
-              );
-            })}
-          </svg>
+          {/* SVG red yarn strings (Desktop view) */}
+          {!isMobile && (
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+              {clueConnections.map(([idA, idB], idx) => {
+                const posA = CARD_POSITIONS[idA] || { x: 100, y: 100 };
+                const posB = CARD_POSITIONS[idB] || { x: 300, y: 300 };
+                return (
+                  <g key={idx}>
+                    <line
+                      x1={posA.x + 120}
+                      y1={posA.y + 4}
+                      x2={posB.x + 120}
+                      y2={posB.y + 4}
+                      stroke="rgba(0, 0, 0, 0.6)"
+                      strokeWidth="3.5"
+                    />
+                    <line
+                      x1={posA.x + 120}
+                      y1={posA.y + 2}
+                      x2={posB.x + 120}
+                      y2={posB.y + 2}
+                      stroke="#ef4444"
+                      strokeWidth="2.5"
+                      strokeDasharray="4 2"
+                      className="animate-pulse"
+                    />
+                    <circle cx={posA.x + 120} cy={posA.y + 2} r="5" fill="#f43f5e" />
+                    <circle cx={posB.x + 120} cy={posB.y + 2} r="5" fill="#f43f5e" />
+                  </g>
+                );
+              })}
+            </svg>
+          )}
 
           {/* Evidence cards */}
           {discoveredClues.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 space-y-3 pointer-events-none">
-              <Network className="w-12 h-12 text-slate-600 animate-pulse" />
-              <div className="text-sm font-mono">Доска пуста. Найдите улики через NetSurf DevTools.</div>
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 space-y-2 py-10 pointer-events-none">
+              <Network className="w-10 h-10 text-slate-600 animate-pulse" />
+              <div className="text-xs font-mono text-center">Доска пуста. Найдите улики в браузере NetSurf.</div>
             </div>
           ) : (
             discoveredClues.map((clue) => (
@@ -276,6 +288,7 @@ export const NexusBoard: React.FC = () => {
                 key={clue.id}
                 clue={clue}
                 isSelected={selectedClueId === clue.id}
+                isMobile={isMobile}
                 onSelect={handleCardClick}
                 onDropConnection={handleDropConnection}
               />
@@ -283,13 +296,13 @@ export const NexusBoard: React.FC = () => {
           )}
         </div>
 
-        {/* Summary */}
-        <div className="px-4 py-2 bg-black/60 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
+        {/* Summary Footer */}
+        <div className="px-3 py-2 bg-black/70 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
           <div>
-            Улик собрано: <span className="text-amber-300 font-bold">{discoveredClues.length}</span>
+            Улик: <span className="text-amber-300 font-bold">{discoveredClues.length}</span>
           </div>
           <div>
-            Связей протянуто: <span className="text-rose-400 font-bold">{clueConnections.length}</span>
+            Связей: <span className="text-rose-400 font-bold">{clueConnections.length}</span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Mail, AlertTriangle, ShieldCheck, Inbox, Send, Archive, ShieldAlert } from 'lucide-react';
+import { Mail, Inbox, ShieldAlert, ArrowLeft } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 import { EmailItem } from '@/types/os';
 
@@ -9,8 +9,8 @@ export const MailClient: React.FC = () => {
   const { emails, markEmailRead, phase, isIsolated, pressureLevel, triggerIsolation } = useOSStore();
   const [selectedMailId, setSelectedMailId] = useState<string>(emails[0]?.id || 'mail-1');
   const [gatewayError, setGatewayError] = useState<string | null>(null);
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
 
-  // Опрос почтового шлюза /api/mail для отслеживания глушения РЭБ / 503 изоляции
   useEffect(() => {
     let active = true;
     const checkMailGateway = async () => {
@@ -52,17 +52,18 @@ export const MailClient: React.FC = () => {
 
   const handleSelect = (mail: EmailItem) => {
     setSelectedMailId(mail.id);
+    setMobileView('detail');
     if (!mail.read) {
       markEmailRead(mail.id);
     }
   };
 
   return (
-    <div className="flex-1 flex bg-[#0e1017] text-slate-200 overflow-hidden font-sans">
-      {/* Mail Sidebar */}
-      <div className="w-56 bg-[#090b10] border-r border-slate-800 flex flex-col">
+    <div className="flex-1 flex flex-col md:flex-row bg-[#0e1017] text-slate-200 overflow-hidden font-sans w-full h-full">
+      {/* Mail Sidebar (Desktop only) */}
+      <div className="hidden md:flex w-52 bg-[#090b10] border-r border-slate-800 flex-col shrink-0">
         <div className="p-3 border-b border-slate-800 text-xs font-mono font-bold text-slate-300 flex items-center justify-between">
-          <span>PRESSMAIL ENCRYPTED</span>
+          <span>PRESSMAIL</span>
           {(isIsolated || pressureLevel >= 70) && (
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" title="Канал связи под глушилкой" />
           )}
@@ -92,9 +93,14 @@ export const MailClient: React.FC = () => {
       </div>
 
       {/* Email List Column */}
-      <div className="w-72 bg-[#0c0e14] border-r border-slate-800 flex flex-col">
-        <div className="p-2.5 border-b border-slate-800 text-xs font-mono text-slate-400">
-          Сообщения ({visibleEmails.length})
+      <div
+        className={`${
+          mobileView === 'detail' ? 'hidden md:flex' : 'flex'
+        } flex-col w-full md:w-72 bg-[#0c0e14] border-r border-slate-800 shrink-0 h-full overflow-hidden`}
+      >
+        <div className="p-2.5 bg-[#090b10] md:bg-transparent border-b border-slate-800 text-xs font-mono text-slate-400 flex items-center justify-between">
+          <span>Входящие сообщения ({visibleEmails.length})</span>
+          <span className="text-[10px] text-purple-400 font-bold md:hidden">PressMail</span>
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-slate-800/60">
@@ -111,10 +117,10 @@ export const MailClient: React.FC = () => {
                 }`}
               >
                 <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                  <span className="font-mono truncate font-medium text-slate-300">
+                  <span className="font-mono truncate font-medium text-slate-300 max-w-[180px]">
                     {mail.sender}
                   </span>
-                  <span className="text-[10px]">{mail.date}</span>
+                  <span className="text-[10px] shrink-0">{mail.date}</span>
                 </div>
 
                 <div
@@ -135,46 +141,50 @@ export const MailClient: React.FC = () => {
       </div>
 
       {/* Email Detail View */}
-      <div className="flex-1 flex flex-col bg-[#111420] overflow-y-auto">
-        {selectedMail ? (
-          <div className="p-6 space-y-4">
-            <div className="border-b border-slate-800 pb-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-slate-100 font-sans">
-                  {selectedMail.subject}
-                </h2>
-                <span className="text-xs font-mono text-slate-400">{selectedMail.date}</span>
-              </div>
+      <div
+        className={`${
+          mobileView === 'list' ? 'hidden md:flex' : 'flex'
+        } flex-1 flex-col bg-[#111420] overflow-y-auto h-full w-full`}
+      >
+        {/* Mobile Back Button Bar */}
+        <div className="md:hidden p-2.5 bg-[#0a0d16] border-b border-slate-800 flex items-center gap-2">
+          <button
+            onClick={() => setMobileView('list')}
+            className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 text-xs font-mono text-slate-200"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Назад к списку</span>
+          </button>
+        </div>
 
-              <div className="text-xs font-mono text-slate-400 flex items-center gap-2">
-                <span className="text-slate-500">От:</span>
-                <span className="text-purple-300 font-medium">{selectedMail.sender}</span>
+        {selectedMail ? (
+          <div className="p-4 md:p-6 space-y-4">
+            <div className="border-b border-slate-800 pb-4 space-y-2">
+              <h1 className="text-base md:text-lg font-bold text-slate-100 leading-snug">
+                {selectedMail.subject}
+              </h1>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-1 font-mono">
+                <div>
+                  От: <span className="text-purple-300 font-semibold">{selectedMail.sender}</span>
+                </div>
+                <div>{selectedMail.date}</div>
               </div>
             </div>
 
-            <div
-              className={`text-xs leading-relaxed font-sans text-slate-200 whitespace-pre-wrap ${
-                selectedMail.corrupted ? 'font-mono text-rose-300 bg-black/40 p-4 rounded-lg border border-rose-500/30' : ''
-              }`}
-            >
+            <div className="text-xs md:text-sm text-slate-300 leading-relaxed font-sans space-y-3 whitespace-pre-line">
               {selectedMail.body}
             </div>
 
-            {(selectedMail.id === 'mail-3' || pressureLevel >= 70) && (
-              <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold font-mono">ДИРЕКТИВА БЕЗОПАСНОСТИ 99-B</div>
-                  <div className="mt-1 text-[11px] text-rose-300/80">
-                    Трассировка входящего трафика подтверждает перехват спецслужбами. Уровень давления: {pressureLevel}%. Немедленно завершите расследование через защищенный терминал ядра (`decrypt-core`).
-                  </div>
-                </div>
+            {selectedMail.corrupted && (
+              <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-500/30 text-rose-300 text-xs font-mono">
+                [ВНИМАНИЕ]: Содержимое письма помечено системой мониторинга Директивы 99-B как потенциально опасный контент.
               </div>
             )}
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-xs font-mono text-slate-500">
-            Выберите письмо для чтения
+          <div className="flex-1 flex items-center justify-center text-slate-500 text-xs font-mono">
+            Выберите сообщение для чтения
           </div>
         )}
       </div>
