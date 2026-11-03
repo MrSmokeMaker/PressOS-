@@ -1,9 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Статический экспорт, подходящий для GitHub Pages
-  // output: 'export',
-  // Путь репозитория на GitHub Pages
-  // // basePath: '/PressOS-',
+  output: 'export',
+  basePath: '/PressOS-',
   assetPrefix: '/PressOS-',
+  images: {
+    unoptimized: true,
+  },
 };
+
 module.exports = nextConfig;
