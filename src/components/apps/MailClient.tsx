@@ -1,12 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Mail, Inbox, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { Mail, Inbox, ShieldAlert, ArrowLeft, ExternalLink } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 import { EmailItem } from '@/types/os';
 
 export const MailClient: React.FC = () => {
-  const { emails, markEmailRead, phase, isIsolated, pressureLevel, triggerIsolation } = useOSStore();
+  const {
+    emails,
+    markEmailRead,
+    phase,
+    isIsolated,
+    pressureLevel,
+    triggerIsolation,
+    tutorialStep,
+    setTutorialStep,
+    openWindow,
+  } = useOSStore();
   const [selectedMailId, setSelectedMailId] = useState<string>(emails[0]?.id || 'mail-1');
   const [gatewayError, setGatewayError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
@@ -55,6 +65,13 @@ export const MailClient: React.FC = () => {
     setMobileView('detail');
     if (!mail.read) {
       markEmailRead(mail.id);
+    }
+
+    // Story progression: reading editor's mail triggers Step 2
+    if (mail.id === 'mail-1' && tutorialStep === 'read_mail') {
+      setTutorialStep('inspect_site');
+      openWindow('netsurf');
+      openWindow('echo');
     }
   };
 
@@ -150,7 +167,7 @@ export const MailClient: React.FC = () => {
         <div className="md:hidden p-2.5 bg-[#0a0d16] border-b border-slate-800 flex items-center gap-2">
           <button
             onClick={() => setMobileView('list')}
-            className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 text-xs font-mono text-slate-200"
+            className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 text-xs font-mono text-slate-200 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Назад к списку</span>
@@ -175,6 +192,22 @@ export const MailClient: React.FC = () => {
             <div className="text-xs md:text-sm text-slate-300 leading-relaxed font-sans space-y-3 whitespace-pre-line">
               {selectedMail.body}
             </div>
+
+            {/* Quick Action Button for Editor's email */}
+            {selectedMail.id === 'mail-1' && (
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    openWindow('netsurf');
+                    openWindow('echo');
+                  }}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-200 font-mono text-xs font-bold transition-all cursor-pointer shadow-md"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>Открыть NetSurf (aether-syndicate.io) и Эхо →</span>
+                </button>
+              </div>
+            )}
 
             {selectedMail.corrupted && (
               <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-500/30 text-rose-300 text-xs font-mono">

@@ -11,6 +11,7 @@ import { Terminal } from '@/components/apps/Terminal';
 import { MailClient } from '@/components/apps/MailClient';
 import { ClimaxModal } from '@/components/apps/ClimaxModal';
 import { PhaseInterlude } from './PhaseInterlude';
+import { TutorialBanner } from './TutorialBanner';
 
 export const Desktop: React.FC = () => {
   const { windows, isIsolated, activeInterlude, dismissInterlude } = useOSStore();
@@ -30,6 +31,9 @@ export const Desktop: React.FC = () => {
         backgroundSize: '100% 100%, 100% 100%, 40px 40px, 40px 40px',
       }}
     >
+      {/* Onboarding Objective Banner */}
+      <TutorialBanner />
+
       {/* Cinematic Phase Interlude Overlay */}
       {activeInterlude && (
         <PhaseInterlude

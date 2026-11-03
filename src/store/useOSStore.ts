@@ -3,6 +3,8 @@ import { AppId, ClueItem, ChatMessage, EmailItem, StoryPhase, WindowState } from
 
 const STORAGE_KEY = 'pressos_game_save_v1';
 
+export type TutorialStep = 'read_mail' | 'inspect_site' | 'connect_nexus' | 'terminal_hack' | 'completed';
+
 const loadSavedState = () => {
   if (typeof window === 'undefined') return {};
   try {
@@ -34,10 +36,11 @@ interface OSState {
   updateWindowPosition: (id: AppId, pos: { x: number; y: number }) => void;
   updateWindowSize: (id: AppId, size: { width: number; height: number }) => void;
 
-  // Story & Narrative
+  // Story, Tutorial & Narrative
   phase: StoryPhase;
-  pressureLevel: number; // 0..100 (спецслужбы / цифровая изоляция)
-  trustLevel: number; // -50..+50 (доверие к Echo / AETHER)
+  tutorialStep: TutorialStep;
+  pressureLevel: number;
+  trustLevel: number;
   activeInterlude: StoryPhase | null;
   discoveredClues: ClueItem[];
   clueConnections: [string, string][];
@@ -46,6 +49,7 @@ interface OSState {
   climaxActive: boolean;
   selectedEnding: 'publish' | 'silence' | 'destroy' | null;
 
+  setTutorialStep: (step: TutorialStep) => void;
   addClue: (clue: ClueItem) => void;
   toggleClueConnection: (clueA: string, clueB: string) => void;
   advancePhase: (nextPhase: StoryPhase) => void;
@@ -70,28 +74,40 @@ interface OSState {
   markEmailRead: (id: string) => void;
 }
 
+// Initial state: Start ONLY with PressMail open to guide the player logically
 const INITIAL_WINDOWS: Record<AppId, WindowState> = {
-  echo: {
-    id: 'echo',
-    title: 'AETHER-Echo v3.4 // Эхо',
-    icon: 'Bot',
+  mail: {
+    id: 'mail',
+    title: 'PressMail Secure Client',
+    icon: 'Mail',
     isOpen: true,
     isMinimized: false,
     isMaximized: false,
     zIndex: 10,
-    position: { x: 860, y: 70 },
-    size: { width: 440, height: 640 },
+    position: { x: 120, y: 70 },
+    size: { width: 840, height: 580 },
   },
   netsurf: {
     id: 'netsurf',
     title: 'NetSurf Browser v8.12',
     icon: 'Globe',
-    isOpen: true,
+    isOpen: false,
     isMinimized: false,
     isMaximized: false,
     zIndex: 9,
     position: { x: 70, y: 70 },
-    size: { width: 760, height: 640 },
+    size: { width: 780, height: 640 },
+  },
+  echo: {
+    id: 'echo',
+    title: 'AETHER-Echo v3.4 // Эхо',
+    icon: 'Bot',
+    isOpen: false,
+    isMinimized: false,
+    isMaximized: false,
+    zIndex: 8,
+    position: { x: 860, y: 70 },
+    size: { width: 440, height: 640 },
   },
   nexus: {
     id: 'nexus',
@@ -101,7 +117,7 @@ const INITIAL_WINDOWS: Record<AppId, WindowState> = {
     isMinimized: false,
     isMaximized: false,
     zIndex: 5,
-    position: { x: 120, y: 90 },
+    position: { x: 140, y: 90 },
     size: { width: 880, height: 600 },
   },
   terminal: {
@@ -114,17 +130,6 @@ const INITIAL_WINDOWS: Record<AppId, WindowState> = {
     zIndex: 6,
     position: { x: 180, y: 140 },
     size: { width: 720, height: 460 },
-  },
-  mail: {
-    id: 'mail',
-    title: 'PressMail Secure Client',
-    icon: 'Mail',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    zIndex: 7,
-    position: { x: 220, y: 100 },
-    size: { width: 800, height: 560 },
   },
 };
 
@@ -292,8 +297,9 @@ export const useOSStore = create<OSState>((set, get) => ({
       },
     })),
 
-  // Story & Evidence
+  // Story, Tutorial & Evidence
   phase: saved.phase ?? 1,
+  tutorialStep: saved.tutorialStep ?? 'read_mail',
   pressureLevel: saved.pressureLevel ?? (saved.isIsolated ? 75 : 0),
   trustLevel: saved.trustLevel ?? 0,
   activeInterlude: null,
@@ -303,6 +309,11 @@ export const useOSStore = create<OSState>((set, get) => ({
   glitchLevel: saved.isIsolated ? 45 : 0,
   climaxActive: false,
   selectedEnding: saved.selectedEnding ?? null,
+
+  setTutorialStep: (step) => {
+    set({ tutorialStep: step });
+    saveProgress({ tutorialStep: step });
+  },
 
   increasePressure: (delta: number) => {
     const { pressureLevel, triggerIsolation } = get();
@@ -344,7 +355,7 @@ export const useOSStore = create<OSState>((set, get) => ({
   dismissInterlude: () => set({ activeInterlude: null }),
 
   addClue: (clue) => {
-    const { discoveredClues, phase, addEchoMessage } = get();
+    const { discoveredClues, phase, addEchoMessage, openWindow, setTutorialStep } = get();
     if (discoveredClues.some((c) => c.id === clue.id)) return;
 
     const updated = [...discoveredClues, clue];
@@ -358,6 +369,8 @@ export const useOSStore = create<OSState>((set, get) => ({
         phase: 1,
       });
       get().advancePhase(2);
+      setTutorialStep('connect_nexus');
+      openWindow('nexus');
     } else if (clue.id === 'clue-prompt' && phase === 2) {
       addEchoMessage({
         sender: 'echo',
@@ -374,7 +387,7 @@ export const useOSStore = create<OSState>((set, get) => ({
   },
 
   toggleClueConnection: (clueA, clueB) => {
-    const { clueConnections, addEchoMessage, phase, addClue } = get();
+    const { clueConnections, addEchoMessage, phase, addClue, setTutorialStep } = get();
     const exists = clueConnections.some(
       ([a, b]) => (a === clueA && b === clueB) || (a === clueB && b === clueA)
     );
@@ -403,6 +416,7 @@ export const useOSStore = create<OSState>((set, get) => ({
     if (hasPromptServer && hasServerTx && phase === 2) {
       get().increasePressure(35);
       get().advancePhase(3);
+      setTutorialStep('terminal_hack');
       addEchoMessage({
         sender: 'echo',
         text: 'Цепь замкнулась на Nexus Board! Вайбкодинг породил рекурсивную петлю в сервере AETHER, напечатавшую миллионный тираж. Спецслужбы фиксируют узел PressOS! Открываю Терминал (tty1). Введите команду `decrypt-core`, пока нас не отрезали от сети!',
@@ -418,11 +432,6 @@ export const useOSStore = create<OSState>((set, get) => ({
         foundAt: 'tty1 / Terminal',
         position: { x: 300, y: 350 },
         connections: [],
-      });
-      addEchoMessage({
-        sender: 'echo',
-        text: 'Анализ ядра показывает: «Чистая Идея» — это не просто книга, а распределенный цифровой субстрат AETHER. Готовы ли вы решить судьбу инфополя?',
-        phase: 3,
       });
     }
   },
@@ -448,8 +457,8 @@ export const useOSStore = create<OSState>((set, get) => ({
   setClimaxActive: (active) => set({ climaxActive: active, glitchLevel: active ? 100 : 0 }),
 
   setSelectedEnding: (ending) => {
-    set({ selectedEnding: ending });
-    saveProgress({ selectedEnding: ending });
+    set({ selectedEnding: ending, tutorialStep: 'completed' });
+    saveProgress({ selectedEnding: ending, tutorialStep: 'completed' });
   },
 
   resetGame: () => {
@@ -462,6 +471,7 @@ export const useOSStore = create<OSState>((set, get) => ({
       windows: INITIAL_WINDOWS,
       highestZIndex: 10,
       phase: 1,
+      tutorialStep: 'read_mail',
       pressureLevel: 0,
       trustLevel: 0,
       activeInterlude: null,

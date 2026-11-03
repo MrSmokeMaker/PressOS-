@@ -4,25 +4,19 @@ import { useOSStore } from '../store/useOSStore.ts';
 
 describe('PressOS: AETHER Game Full Playthrough Flow', () => {
   beforeEach(() => {
-    useOSStore.setState({
-      phase: 1,
-      discoveredClues: [],
-      clueConnections: [],
-      isIsolated: false,
-      glitchLevel: 0,
-      climaxActive: false,
-      selectedEnding: null,
-    });
+    useOSStore.getState().resetGame();
   });
 
-  test('Фаза 1: Стартовое состояние и окна', () => {
+  test('Фаза 1: Стартовое состояние — открыта только почта PressMail (пошаговый онбординг)', () => {
     const state = useOSStore.getState();
     assert.equal(state.phase, 1);
-    assert.equal(state.windows.echo.isOpen, true);
-    assert.equal(state.windows.netsurf.isOpen, true);
+    assert.equal(state.tutorialStep, 'read_mail');
+    assert.equal(state.windows.mail.isOpen, true, 'Почта должна быть открыта первой');
+    assert.equal(state.windows.netsurf.isOpen, false, 'Браузер закрыт до прочтения письма');
+    assert.equal(state.windows.echo.isOpen, false, 'Эхо закрыт до прочтения письма');
   });
 
-  test('Фаза 1 -> Фаза 2: Нахождение транзакции типографии (clue-tx) открывает Фазу 2', () => {
+  test('Фаза 1 -> Фаза 2: Нахождение транзакции типографии (clue-tx) открывает Фазу 2 и Nexus Board', () => {
     const store = useOSStore.getState();
     store.addClue({
       id: 'clue-tx',
@@ -37,6 +31,8 @@ describe('PressOS: AETHER Game Full Playthrough Flow', () => {
 
     const state = useOSStore.getState();
     assert.equal(state.phase, 2);
+    assert.equal(state.tutorialStep, 'connect_nexus');
+    assert.equal(state.windows.nexus.isOpen, true, 'Nexus Board открывается автоматически');
     assert.equal(state.discoveredClues.some((c) => c.id === 'clue-tx'), true);
   });
 
@@ -87,6 +83,7 @@ describe('PressOS: AETHER Game Full Playthrough Flow', () => {
     assert.equal(state.phase, 3);
     assert.equal(state.isIsolated, true);
     assert.equal(state.windows.terminal.isOpen, true);
+    assert.equal(state.tutorialStep, 'terminal_hack');
     assert.equal(state.discoveredClues.some((c) => c.id === 'clue-core'), true);
   });
 
@@ -99,5 +96,6 @@ describe('PressOS: AETHER Game Full Playthrough Flow', () => {
     // Игрок выбирает концовку
     store.setSelectedEnding('publish');
     assert.equal(useOSStore.getState().selectedEnding, 'publish');
+    assert.equal(useOSStore.getState().tutorialStep, 'completed');
   });
 });
