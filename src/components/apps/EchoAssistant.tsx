@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot } from 'lucide-react';
+import { Send, Bot, Radio, Activity } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 import { getSimulatedEchoResponse } from '@/utils/echoEngine';
 
 export const EchoAssistant: React.FC = () => {
-  const { echoMessages, isEchoTyping, addEchoMessage, setEchoTyping, phase } = useOSStore();
+  const { echoMessages, isEchoTyping, addEchoMessage, setEchoTyping, phase, trustLevel, adjustTrust } = useOSStore();
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -74,27 +74,32 @@ export const EchoAssistant: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#080d1a] text-slate-100 overflow-hidden font-sans">
-      {/* Echo Header Status Banner */}
-      <div className="px-4 py-3 bg-cyan-950/20 border-b border-cyan-500/20 flex items-center justify-between">
+    <div className="flex-1 flex flex-col bg-[#070b16] text-slate-100 overflow-hidden font-sans">
+      {/* Echo Header Status Banner with Live Pulsing Orb */}
+      <div className="px-4 py-3 bg-[#0d1326] border-b border-cyan-500/20 flex items-center justify-between select-none">
         <div className="flex items-center gap-3">
+          {/* Animated Neural Core Orb */}
           <div
-            className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${getAvatarGlow()} p-0.5 shadow-lg flex items-center justify-center animate-pulse`}
+            className={`relative w-10 h-10 rounded-2xl bg-gradient-to-tr ${getAvatarGlow()} p-0.5 shadow-xl flex items-center justify-center transition-all ${
+              isEchoTyping ? 'scale-110 animate-spin' : ''
+            }`}
           >
-            <div className="w-full h-full bg-[#080d1a] rounded-[10px] flex items-center justify-center">
+            <div className="w-full h-full bg-[#070b16] rounded-[14px] flex items-center justify-center overflow-hidden">
               <Bot className="w-5 h-5 text-cyan-300" />
             </div>
           </div>
+
           <div>
             <div className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-2">
-              <span>ЭХО // AETHER SUBSTRATE NODE</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+              <span>ЭХО // AETHER NEURAL NODE</span>
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
             </div>
-            <div className="text-[11px] text-slate-400">
-              {phase === 1 && 'Режим: Ассистент расследования'}
-              {phase === 2 && 'Режим: Корреляция архивов Genesis 2024'}
-              {phase === 3 && 'Режим: Протокол глубокого резонанса AETHER'}
-              {phase === 'climax' && 'Режим: Синхронизация Чистой Идеи'}
+            <div className="text-[11px] text-slate-400 flex items-center gap-2 font-mono">
+              <span>{phase === 1 && 'Ассистент расследования'}</span>
+              <span>{phase === 2 && 'Архивы Genesis 2024'}</span>
+              <span>{phase === 3 && 'Резонанс AETHER'}</span>
+              <span>•</span>
+              <span className="text-emerald-400">Доверие: {trustLevel > 0 ? `+${trustLevel}` : trustLevel}</span>
             </div>
           </div>
         </div>
@@ -122,12 +127,12 @@ export const EchoAssistant: React.FC = () => {
             </div>
 
             <div
-              className={`max-w-[88%] px-3.5 py-2.5 rounded-xl text-xs leading-relaxed font-sans ${
+              className={`max-w-[88%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed font-sans shadow-md ${
                 msg.sender === 'user'
-                  ? 'bg-cyan-600/30 border border-cyan-400/40 text-cyan-100'
+                  ? 'bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-400/40 text-cyan-100'
                   : msg.sender === 'system'
                   ? 'bg-amber-950/40 border border-amber-500/30 text-amber-200 font-mono text-[11px]'
-                  : 'bg-slate-900/90 border border-cyan-500/20 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
+                  : 'bg-[#0f172a]/90 border border-cyan-500/20 text-slate-200 backdrop-blur-md'
               }`}
             >
               {msg.text}
@@ -136,9 +141,10 @@ export const EchoAssistant: React.FC = () => {
         ))}
 
         {isEchoTyping && (
-          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 py-1">
+          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 py-1 pl-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <span>Эхо синтезирует ответ...</span>
+            <Activity className="w-3.5 h-3.5 animate-pulse text-cyan-300" />
+            <span>Эхо синтезирует нейронный отклик...</span>
           </div>
         )}
 
@@ -146,7 +152,7 @@ export const EchoAssistant: React.FC = () => {
       </div>
 
       {/* Quick Prompts */}
-      <div className="px-3 py-2 bg-black/40 border-t border-cyan-500/10 flex items-center gap-2 overflow-x-auto text-xs">
+      <div className="px-3 py-2 bg-black/50 border-t border-cyan-500/10 flex items-center gap-2 overflow-x-auto text-xs">
         {quickPrompts.map((p, idx) => (
           <button
             key={idx}
@@ -160,7 +166,7 @@ export const EchoAssistant: React.FC = () => {
       </div>
 
       {/* Input Form */}
-      <div className="p-3 bg-slate-950/80 border-t border-cyan-500/20 flex items-center gap-2">
+      <div className="p-3 bg-[#0a0f1e] border-t border-cyan-500/20 flex items-center gap-2">
         <input
           type="text"
           value={inputText}
@@ -169,12 +175,12 @@ export const EchoAssistant: React.FC = () => {
             if (e.key === 'Enter') handleSendMessage();
           }}
           placeholder="Спросите ассистента Эхо о книге или уликax..."
-          className="flex-1 bg-black/50 border border-cyan-500/30 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 outline-none focus:border-cyan-400 font-sans"
+          className="flex-1 bg-black/60 border border-cyan-500/30 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 outline-none focus:border-cyan-400 font-sans shadow-inner"
         />
         <button
           onClick={() => handleSendMessage()}
           disabled={!inputText.trim() || isEchoTyping}
-          className="p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-300 disabled:opacity-40 transition-all cursor-pointer"
+          className="p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-300 disabled:opacity-40 transition-all cursor-pointer shadow-md"
         >
           <Send className="w-4 h-4" />
         </button>
