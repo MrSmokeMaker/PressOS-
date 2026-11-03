@@ -1,13 +1,45 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, AlertTriangle, ShieldCheck, Inbox, Send, Archive, ShieldAlert } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 import { EmailItem } from '@/types/os';
 
 export const MailClient: React.FC = () => {
-  const { emails, markEmailRead, phase, isIsolated } = useOSStore();
+  const { emails, markEmailRead, phase, isIsolated, pressureLevel, triggerIsolation } = useOSStore();
   const [selectedMailId, setSelectedMailId] = useState<string>(emails[0]?.id || 'mail-1');
+  const [gatewayError, setGatewayError] = useState<string | null>(null);
+
+  // Опрос почтового шлюза /api/mail для отслеживания глушения РЭБ / 503 изоляции
+  useEffect(() => {
+    let active = true;
+    const checkMailGateway = async () => {
+      try {
+        const res = await fetch('/api/mail', {
+          headers: {
+            'x-pressure-level': String(pressureLevel),
+            'x-game-phase': String(phase),
+          },
+        });
+        if (!active) return;
+        if (res.status === 503) {
+          const data = await res.json().catch(() => ({}));
+          setGatewayError(data.message || '503 Service Unavailable: Gateway Jammed');
+          if (!isIsolated) triggerIsolation(true);
+        } else {
+          setGatewayError(null);
+        }
+      } catch {
+        if (active && (pressureLevel >= 70 || isIsolated)) {
+          setGatewayError('Сбой соединения со шлюзом PressMail (РЭБ)');
+        }
+      }
+    };
+    checkMailGateway();
+    return () => {
+      active = false;
+    };
+  }, [pressureLevel, phase, isIsolated, triggerIsolation]);
 
   const visibleEmails = emails.filter((e) => {
     if (typeof phase === 'number') {
@@ -31,7 +63,7 @@ export const MailClient: React.FC = () => {
       <div className="w-56 bg-[#090b10] border-r border-slate-800 flex flex-col">
         <div className="p-3 border-b border-slate-800 text-xs font-mono font-bold text-slate-300 flex items-center justify-between">
           <span>PRESSMAIL ENCRYPTED</span>
-          {isIsolated && (
+          {(isIsolated || pressureLevel >= 70) && (
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" title="Канал связи под глушилкой" />
           )}
         </div>
@@ -48,13 +80,13 @@ export const MailClient: React.FC = () => {
           </button>
         </div>
 
-        {isIsolated && (
-          <div className="m-2 p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/40 text-[11px] text-rose-300 font-mono leading-tight">
+        {(isIsolated || pressureLevel >= 70 || gatewayError) && (
+          <div className="m-2 p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/40 text-[11px] text-rose-300 font-mono leading-tight animate-pulse">
             <div className="flex items-center gap-1.5 font-bold mb-1">
               <ShieldAlert className="w-3.5 h-3.5" />
-              <span>СБОЙ ШЛЮЗА</span>
+              <span>СБОЙ ШЛЮЗА (503)</span>
             </div>
-            Внешние серверы заблокированы правительственным файрволом.
+            {gatewayError || 'Внешние серверы заблокированы правительственным файрволом.'}
           </div>
         )}
       </div>
@@ -128,13 +160,13 @@ export const MailClient: React.FC = () => {
               {selectedMail.body}
             </div>
 
-            {selectedMail.id === 'mail-3' && (
+            {(selectedMail.id === 'mail-3' || pressureLevel >= 70) && (
               <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold font-mono">ДИРЕКТИВА БЕЗОПАСНОСТИ 99-B</div>
                   <div className="mt-1 text-[11px] text-rose-300/80">
-                    Трассировка входящего трафика подтверждает перехват. Немедленно завершите расследование через защищенный терминал ядра.
+                    Трассировка входящего трафика подтверждает перехват спецслужбами. Уровень давления: {pressureLevel}%. Немедленно завершите расследование через защищенный терминал ядра (`decrypt-core`).
                   </div>
                 </div>
               </div>

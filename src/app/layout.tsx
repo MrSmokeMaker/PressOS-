@@ -3,7 +3,7 @@ import './globals.css';
 import { AudioProvider } from '@/context/AudioContext';
 
 export const metadata: Metadata = {
-  title: 'PressOS // Проект AION: Чистая Идея',
+  title: 'PressOS // Проект AETHER: Чистая Идея',
   description: 'Мета-киберпанк триллер и OS-детектив',
 };
 

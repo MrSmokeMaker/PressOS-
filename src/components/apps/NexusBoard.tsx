@@ -5,13 +5,17 @@ import { useOSStore } from '@/store/useOSStore';
 import { ClueItem } from '@/types/os';
 import { DndProvider, useDrag, useDrop, useDragLayer } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Plus, Network, GitBranch, Server, FileText, Link2 } from 'lucide-react';
+import { Plus, Network, GitBranch, Server, FileText, Link2, Radio, Shield } from 'lucide-react';
 import { useAudio } from '@/context/AudioContext';
 
 const CARD_POSITIONS: Record<string, { x: number; y: number }> = {
-  'clue-prompt': { x: 60, y: 100 },
-  'clue-server': { x: 340, y: 220 },
-  'clue-tx': { x: 620, y: 100 },
+  'clue-prompt': { x: 50, y: 80 },
+  'clue-server': { x: 320, y: 190 },
+  'clue-tx': { x: 600, y: 80 },
+  'clue-audio-glitch': { x: 600, y: 280 },
+  'clue-git-blame': { x: 50, y: 280 },
+  'clue-defense-blacklist': { x: 320, y: 390 },
+  'clue-core': { x: 320, y: 20 },
 };
 
 // Custom drag layer for preview
@@ -59,6 +63,8 @@ const getCategoryIcon = (category: string) => {
       return <Server className="w-4 h-4 text-cyan-400" />;
     case 'delivery':
       return <FileText className="w-4 h-4 text-amber-400" />;
+    case 'classified':
+      return <Shield className="w-4 h-4 text-rose-400" />;
     default:
       return <Network className="w-4 h-4 text-purple-400" />;
   }
@@ -120,8 +126,8 @@ const ClueCard: React.FC<CardProps> = ({ clue, isSelected, onSelect, onDropConne
         {clue.content}
       </p>
       <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
-        <span>{clue.foundAt}</span>
-        <Link2 className="w-3 h-3 text-cyan-400" />
+        <span className="truncate max-w-[170px]">{clue.foundAt}</span>
+        <Link2 className="w-3 h-3 text-cyan-400 shrink-0" />
       </div>
     </div>
   );
@@ -260,7 +266,7 @@ export const NexusBoard: React.FC = () => {
         {/* Summary */}
         <div className="px-4 py-2 bg-black/60 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
           <div>
-            Улик собрано: <span className="text-amber-300 font-bold">{discoveredClues.length}</span> / 3
+            Улик собрано: <span className="text-amber-300 font-bold">{discoveredClues.length}</span>
           </div>
           <div>
             Связей протянуто: <span className="text-cyan-400 font-bold">{clueConnections.length}</span>

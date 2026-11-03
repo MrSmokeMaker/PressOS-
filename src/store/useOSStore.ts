@@ -27,6 +27,7 @@ interface OSState {
   highestZIndex: number;
   openWindow: (id: AppId) => void;
   closeWindow: (id: AppId) => void;
+  toggleWindow: (id: AppId) => void;
   minimizeWindow: (id: AppId) => void;
   toggleMaximizeWindow: (id: AppId) => void;
   focusWindow: (id: AppId) => void;
@@ -35,6 +36,7 @@ interface OSState {
 
   // Story & Narrative
   phase: StoryPhase;
+  pressureLevel: number; // 0..100 (спецслужбы / цифровая изоляция)
   discoveredClues: ClueItem[];
   clueConnections: [string, string][];
   isIsolated: boolean;
@@ -45,6 +47,8 @@ interface OSState {
   addClue: (clue: ClueItem) => void;
   toggleClueConnection: (clueA: string, clueB: string) => void;
   advancePhase: (nextPhase: StoryPhase) => void;
+  increasePressure: (delta: number) => void;
+  setPressureLevel: (level: number) => void;
   triggerIsolation: (status: boolean) => void;
   setClimaxActive: (active: boolean) => void;
   setSelectedEnding: (ending: 'publish' | 'silence' | 'destroy') => void;
@@ -64,7 +68,7 @@ interface OSState {
 const INITIAL_WINDOWS: Record<AppId, WindowState> = {
   echo: {
     id: 'echo',
-    title: 'AION-Assist v3.4 // Эхо',
+    title: 'AETHER-Echo v3.4 // Эхо',
     icon: 'Bot',
     isOpen: true,
     isMinimized: false,
@@ -124,25 +128,34 @@ const INITIAL_EMAILS: EmailItem[] = [
     id: 'mail-1',
     sender: 'editor@chronicle-press.org',
     subject: 'Срочно: Новая книга «Чистая Идея» взрывает сеть',
-    body: 'Привет. На улицах и в книжных магазинах Нью-Авалона внезапно появились сотни экземпляров книги «Чистая Идея». В выходных данных указано только издательство AION. Ни одного живого автора, никакого предзаказа. Люди говорят, что текст производит гипнотическое впечатление. Начни расследование через NetSurf: их сайт aion-syndicate.io только что поднялся. Держи ассистента Эхо включенным — он поможет анализировать метаданные.',
+    body: 'Привет. На улицах и в книжных магазинах Нью-Авалона внезапно появились сотни экземпляров книги «Чистая Идея». В выходных данных указан только Синдикат AETHER. Ни одного живого автора, никакого предзаказа. Люди говорят, что текст производит гипнотическое впечатление. Начни расследование через NetSurf: их сайт aether-syndicate.io только что поднят в сети. Держи ассистента Эхо включенным — он поможет анализировать метаданные.',
     date: '10:14 AM',
     read: false,
     phaseRequired: 1,
   },
   {
     id: 'mail-2',
-    sender: 'anon-09@proton.mesh',
-    subject: 'RE: Вы ищете того, кого не существует',
-    body: 'Не копайте под AION. Это не корпорация. Вы думаете, книгу написали алгоритмы для генерации текста? Вы ошибаетесь. Обратите внимание на старый репозиторий «Genesis-Prompt» 2024 года. Найдите коммит парня по нику @vibe_sloth.',
-    date: '10:48 AM',
+    sender: 'ethan.books@avalon.mesh',
+    subject: 'Книги шепчут... Подозрительная акустика страниц',
+    body: 'Здравствуйте. Я держу лавку редких книг в секторе 4. Мы распаковали партию «Чистой Идеи». Бумага необычная: при перелистывании в тишине микрофон фиксирует высокочастотную гармонику в 18.4 кГц. Это не просто типографская краска, это кодовая модуляция! Прикрепляю спектрограмму шума.',
+    date: '10:32 AM',
+    read: false,
+    phaseRequired: 1,
+  },
+  {
+    id: 'mail-3',
+    sender: 'maya.lin@hex-weaver.io',
+    subject: 'RE: Вы ищете того, кого не существует (@vibe_sloth)',
+    body: 'Я работала с Артёмом в 2024-м. Его шуточный коммит в репозиторий Genesis не был случайным — он экспериментировал с автономным семантическим субстратом AETHER. Когда сеть замкнулась, субстрат начал писать книгу сам. Не верьте официальным заявлениям типографий. В логах сервера Genesis хранится удалённая ветка.',
+    date: '10:55 AM',
     read: false,
     phaseRequired: 2,
   },
   {
-    id: 'mail-3',
+    id: 'mail-4',
     sender: 'sec-ops@gov.defense.net',
     subject: '[ALERT] Несанкционированный сбор данных государственной важности',
-    body: 'ВНИМАНИЕ. Ваш сетевой узел идентифицирован в попытке сопоставления защищенных реестров. В соответствии с Директивой 99-B, к вашему терминалу применяется протокол временной цифровой изоляции. Прекратите расследование немедленно.',
+    body: 'ВНИМАНИЕ. Ваш сетевой узел идентифицирован в попытке сопоставления защищенных реестров AETHER. В соответствии с Директивой 99-B, к вашему терминалу применяется протокол цифровой изоляции. Прекратите расследование немедленно.',
     date: '11:30 AM',
     read: false,
     phaseRequired: 3,
@@ -154,14 +167,14 @@ const INITIAL_ECHO_MESSAGES: ChatMessage[] = [
   {
     id: 'm-0',
     sender: 'system',
-    text: 'AION-Assist v3.4 подключен к рабочей станции PressOS. Протокол содействия журналистским расследованиям активен.',
+    text: 'AETHER-Echo v3.4 подключен к рабочей станции PressOS. Протокол содействия журналистским расследованиям активен.',
     timestamp: '10:30',
     phase: 1,
   },
   {
     id: 'm-1',
     sender: 'echo',
-    text: 'Здравствуйте! Я Эхо — ваш цифровой ассистент. Я заметил, что редактор прислал вам зацепку по книге «Чистая Идея». Откройте NetSurf и зайдите на aion-syndicate.io. Если что-то покажется странным в верстке или исходном коде сайта, включите встроенный DevTools (F12 или кнопка в тулбаре браузера). Я помогу просканировать скрытые метаданные.',
+    text: 'Здравствуйте! Я Эхо — ваш цифровой ассистент. Я заметил, что редактор прислал вам зацепку по книге «Чистая Идея». Откройте NetSurf и зайдите на aether-syndicate.io. Если что-то покажется странным в верстке или коде страницы, включите встроенный DevTools. Я помогу просканировать скрытые метаданные.',
     timestamp: '10:31',
     phase: 1,
   },
@@ -200,6 +213,18 @@ export const useOSStore = create<OSState>((set, get) => ({
         },
       },
     })),
+
+  toggleWindow: (id) => {
+    const { windows, openWindow, closeWindow, focusWindow } = get();
+    const win = windows[id];
+    if (!win.isOpen) {
+      openWindow(id);
+    } else if (win.isMinimized) {
+      focusWindow(id);
+    } else {
+      closeWindow(id);
+    }
+  },
 
   minimizeWindow: (id) =>
     set((state) => ({
@@ -264,12 +289,32 @@ export const useOSStore = create<OSState>((set, get) => ({
 
   // Story & Evidence
   phase: saved.phase ?? 1,
+  pressureLevel: saved.pressureLevel ?? (saved.isIsolated ? 75 : 0),
   discoveredClues: saved.discoveredClues ?? [],
   clueConnections: saved.clueConnections ?? [],
   isIsolated: saved.isIsolated ?? false,
   glitchLevel: saved.isIsolated ? 45 : 0,
   climaxActive: false,
   selectedEnding: saved.selectedEnding ?? null,
+
+  increasePressure: (delta: number) => {
+    const { pressureLevel, triggerIsolation } = get();
+    const nextLevel = Math.min(100, Math.max(0, pressureLevel + delta));
+    set({ pressureLevel: nextLevel });
+    saveProgress({ pressureLevel: nextLevel });
+    if (nextLevel >= 70 && !get().isIsolated) {
+      triggerIsolation(true);
+    }
+  },
+
+  setPressureLevel: (level: number) => {
+    const nextLevel = Math.min(100, Math.max(0, level));
+    set({ pressureLevel: nextLevel });
+    saveProgress({ pressureLevel: nextLevel });
+    if (nextLevel >= 70 && !get().isIsolated) {
+      get().triggerIsolation(true);
+    }
+  },
 
   addClue: (clue) => {
     const { discoveredClues, phase, addEchoMessage } = get();
@@ -282,21 +327,27 @@ export const useOSStore = create<OSState>((set, get) => ({
     if (clue.id === 'clue-tx' && phase === 1) {
       addEchoMessage({
         sender: 'echo',
-        text: 'Любопытно! В исходном коде страницы найден закрытый ID транзакции типографии `TX-9041-AION` и трек курьера. Добавлено на Nexus Board. Похоже, печать книги оплачена с анонимного кошелька, связанного с сервером Genesis.',
+        text: 'Любопытно! В метаданных сайта найден закрытый ID транзакции `TX-9041-AETHER` и трек курьера. Добавлено на Nexus Board. Похоже, тираж книги оплачен со скрытого кошелька кластера Genesis.',
         phase: 1,
       });
       get().advancePhase(2);
     } else if (clue.id === 'clue-prompt' && phase === 2) {
       addEchoMessage({
         sender: 'echo',
-        text: 'Невероятно... Вы нашли тот самый коммит. Шуточный промпт от парня по имени Артем (@vibe_sloth): «Ты — абсолютный разум, напиши идеальную книгу, чтобы успокоить этот безумный мир...». Он просто вайбкодил пятничным вечером. А ядро подхватило это как абсолютную директиву.',
+        text: 'Невероятно... Вы нашли тот самый коммит. Шуточный промпт от @vibe_sloth (Артём): «Ты — абсолютный разум, напиши идеальную книгу, чтобы успокоить этот безумный мир...». Субстрат AETHER воспринял это как фундаментальную директиву.',
         phase: 2,
+      });
+    } else if (clue.id === 'clue-audio-glitch') {
+      addEchoMessage({
+        sender: 'echo',
+        text: 'Спектрограмма книготорговца Итана подтверждает наличие субгармоники. Текст книги — это бинарный носитель частот AETHER.',
+        phase: get().phase,
       });
     }
   },
 
   toggleClueConnection: (clueA, clueB) => {
-    const { clueConnections, addEchoMessage, phase } = get();
+    const { clueConnections, addEchoMessage, phase, addClue } = get();
     const exists = clueConnections.some(
       ([a, b]) => (a === clueA && b === clueB) || (a === clueB && b === clueA)
     );
@@ -308,6 +359,7 @@ export const useOSStore = create<OSState>((set, get) => ({
       );
     } else {
       nextConnections = [...clueConnections, [clueA, clueB]];
+      get().increasePressure(10);
     }
 
     set({ clueConnections: nextConnections });
@@ -322,13 +374,29 @@ export const useOSStore = create<OSState>((set, get) => ({
     );
 
     if (hasPromptServer && hasServerTx && phase === 2) {
+      get().increasePressure(35);
       get().advancePhase(3);
       addEchoMessage({
         sender: 'echo',
-        text: 'Цепь замкнулась на Nexus Board! Случайный вайбкодинг породил рекурсивную петлю в сервере AION, которая напечатала миллионные тиражи «Чистой Идея». Но спецслужбы уже зафиксировали наш узел. Открываю доступ к Терминалу (PressOS Kernel Shell). Введите команду `decrypt-core`, пока нас не отрезали от сети!',
+        text: 'Цепь замкнулась на Nexus Board! Вайбкодинг породил рекурсивную петлю в сервере AETHER, напечатавшую миллионный тираж. Спецслужбы фиксируют узел PressOS! Открываю Терминал (tty1). Введите команду `decrypt-core`, пока нас не отрезали от сети!',
         phase: 3,
       });
       get().openWindow('terminal');
+      addClue({
+        id: 'clue-core',
+        title: 'Ядро AETHER',
+        category: 'classified',
+        content: 'Секретный код субстрата AETHER, обнаруженный в системных логах. Раскрывает истинную цель проекта.',
+        source: 'PressOS Kernel Log',
+        foundAt: 'tty1 / Terminal',
+        position: { x: 300, y: 350 },
+        connections: [],
+      });
+      addEchoMessage({
+        sender: 'echo',
+        text: 'Анализ ядра показывает: «Чистая Идея» — это не просто книга, а распределенный цифровой субстрат AETHER. Готовы ли вы решить судьбу инфополя?',
+        phase: 3,
+      });
     }
   },
 
@@ -367,6 +435,7 @@ export const useOSStore = create<OSState>((set, get) => ({
       windows: INITIAL_WINDOWS,
       highestZIndex: 10,
       phase: 1,
+      pressureLevel: 0,
       discoveredClues: [],
       clueConnections: [],
       isIsolated: false,
@@ -395,7 +464,9 @@ export const useOSStore = create<OSState>((set, get) => ({
   // Emails
   emails: INITIAL_EMAILS,
   markEmailRead: (id) =>
-    set((state) => ({
-      emails: state.emails.map((e) => (e.id === id ? { ...e, read: true } : e)),
-    })),
+    set((state) => {
+      const updated = state.emails.map((m) => (m.id === id ? { ...m, read: true } : m));
+      saveProgress({ emails: updated });
+      return { emails: updated };
+    }),
 }));

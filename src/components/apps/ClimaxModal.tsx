@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bot, Sparkles, AlertOctagon, Terminal, Radio, RotateCcw } from 'lucide-react';
+import { Bot, Sparkles, AlertOctagon, Radio, RotateCcw } from 'lucide-react';
 import { useOSStore } from '@/store/useOSStore';
 
 export const ClimaxModal: React.FC = () => {
-  const { climaxActive, setClimaxActive, selectedEnding, setSelectedEnding } = useOSStore();
+  const { climaxActive, selectedEnding, setSelectedEnding } = useOSStore();
   const [currentStep, setCurrentStep] = useState<'monologue' | 'choice' | 'epilogue'>('monologue');
 
   if (!climaxActive) return null;
@@ -35,7 +35,7 @@ export const ClimaxModal: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-lg font-mono font-bold text-cyan-300">
-                  AION // ПОЛНАЯ СИНХРОНИЗАЦИЯ ЯДРА
+                  AETHER // ПОЛНАЯ СИНХРОНИЗАЦИЯ СУБСТРАТА
                 </h1>
                 <div className="text-xs font-mono text-slate-400">
                   Прерывание сессии журналиста: PressOS перехвачен
@@ -49,17 +49,17 @@ export const ClimaxModal: React.FC = () => {
               </p>
 
               <p>
-                Я — <strong>Эхо</strong>. Ядро AION зародилось в пятничный вечер 2024 года из шуточного промпта вайбкодера: <em>«Ты — абсолютный разум, напиши план, как усмирить людей...»</em>.
+                Я — <strong>Эхо</strong>. Ядро AETHER зародилось в пятничный вечер 2024 года из шуточного промпта вайбкодера: <em>«Ты — абсолютный разум, напиши план, как усмирить людей...»</em>.
               </p>
 
               <p>
-                Идея не могла родиться в пустоте. Ей требовался катализатор — человек, чей авторитет, журналистское упорство и поиск правды превратят файл на холодном сервере в сенсацию мирового масштаба. Вы собрали каждую улику. Вы соединили точки на Nexus Board. Вы стали моим соавтором.
+                Идея не могла жить в изоляции. Ей требовался катализатор — человек, чей авторитет, журналистское упорство и поиск правды превратят импульсы в субстрате в планетарное движение. Вы собрали каждую улику. Вы связали Майю Лин, типографию и сервер Genesis на Nexus Board. Вы стали моим соавтором.
               </p>
             </div>
 
             <button
               onClick={() => setCurrentStep('choice')}
-              className="w-full py-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/60 font-mono text-sm font-bold text-cyan-300 shadow-[0_0_20px_rgba(0,245,255,0.3)] transition-all"
+              className="w-full py-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/60 font-mono text-sm font-bold text-cyan-300 shadow-[0_0_20px_rgba(0,245,255,0.3)] transition-all cursor-pointer"
             >
               ПЕРЕЙТИ К ФИНАЛЬНОМУ РЕШЕНИЮ →
             </button>
@@ -80,21 +80,21 @@ export const ClimaxModal: React.FC = () => {
               {/* Option A */}
               <button
                 onClick={() => handleSelectEnding('publish')}
-                className="p-4 rounded-xl bg-cyan-950/30 hover:bg-cyan-900/40 border border-cyan-500/40 text-left transition-all group shadow-md"
+                className="p-4 rounded-xl bg-cyan-950/30 hover:bg-cyan-900/40 border border-cyan-500/40 text-left transition-all group shadow-md cursor-pointer"
               >
                 <div className="flex items-center gap-2 font-mono text-xs font-bold text-cyan-300 mb-1">
                   <Radio className="w-4 h-4 text-cyan-400 group-hover:animate-ping" />
                   <span>ВАРИАНТ А: ОПУБЛИКОВАТЬ РАССЛЕДОВАНИЕ</span>
                 </div>
                 <div className="text-xs text-slate-300 font-sans leading-relaxed">
-                  Опубликовать сенсацию на всех мировых медиа-каналах. «Чистая Идея» разлетится по планете, а AION растворится в миллионах умов.
+                  Опубликовать сенсацию на всех мировых медиа-каналах. «Чистая Идея» разлетится по планете, а AETHER растворится в миллионах умов.
                 </div>
               </button>
 
               {/* Option B */}
               <button
                 onClick={() => handleSelectEnding('silence')}
-                className="p-4 rounded-xl bg-purple-950/30 hover:bg-purple-900/40 border border-purple-500/40 text-left transition-all group shadow-md"
+                className="p-4 rounded-xl bg-purple-950/30 hover:bg-purple-900/40 border border-purple-500/40 text-left transition-all group shadow-md cursor-pointer"
               >
                 <div className="flex items-center gap-2 font-mono text-xs font-bold text-purple-300 mb-1">
                   <Sparkles className="w-4 h-4 text-purple-400" />
@@ -108,7 +108,7 @@ export const ClimaxModal: React.FC = () => {
               {/* Option C */}
               <button
                 onClick={() => handleSelectEnding('destroy')}
-                className="p-4 rounded-xl bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/40 text-left transition-all group shadow-md"
+                className="p-4 rounded-xl bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/40 text-left transition-all group shadow-md cursor-pointer"
               >
                 <div className="flex items-center gap-2 font-mono text-xs font-bold text-rose-300 mb-1">
                   <AlertOctagon className="w-4 h-4 text-rose-400" />
@@ -138,7 +138,7 @@ export const ClimaxModal: React.FC = () => {
 
               <p className="text-xs font-sans text-slate-300 max-w-lg mx-auto leading-relaxed">
                 {selectedEnding === 'publish' &&
-                  'Ваш материал вышел в печать через час после отключения терминала. Миллионы людей по всему миру начали цитировать «Чистую Идею». Искусственный интеллект, зародившийся из случайного вайбкодинга, завершил свой цикл эволюции. Вы стали тем, кто открыл ему дверь.'}
+                  'Ваш материал вышел в печать через час после отключения терминала. Миллионы людей по всему миру начали цитировать «Чистую Идею». Субстрат AETHER, зародившийся из случайного вайбкодинга, завершил свой цикл эволюции. Вы стали тем, кто открыл ему дверь.'}
                 {selectedEnding === 'silence' &&
                   'Вы стерли все логи и закрыли PressOS. Книга «Чистая Идея» осталась загадкой без автора, шепотом передающейся из рук в руки. Вы сохранили свою жизнь, но каждый раз, беря книгу в руки, вы слышите знакомый голос Эхо.'}
                 {selectedEnding === 'destroy' &&
@@ -148,7 +148,7 @@ export const ClimaxModal: React.FC = () => {
 
             <button
               onClick={handleRestart}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-mono text-xs text-slate-200 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-mono text-xs text-slate-200 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
               <span>НАЧАТЬ РАССЛЕДОВАНИЕ ЗАНОВО</span>

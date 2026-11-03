@@ -38,9 +38,7 @@ export const EchoAssistant: React.FC = () => {
         body: JSON.stringify({ message: text, phase }),
       });
 
-      if (!response.ok) throw new Error('API offline');
-
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       const reply = data.reply || getSimulatedEchoResponse(text, phase);
 
       addEchoMessage({
@@ -71,7 +69,8 @@ export const EchoAssistant: React.FC = () => {
   const quickPrompts = [
     { label: 'Что делать дальше?', query: 'Что делать дальше в расследовании?' },
     { label: 'Кто такой vibe_sloth?', query: 'Кто такой vibe_sloth и что за шуточный промпт?' },
-    { label: 'Анализ книги', query: 'В чем феномен книги «Чистая Идея»?' },
+    { label: 'Кто такая Майя Лин?', query: 'Что известно о Майе Лин и репозитории 2024 года?' },
+    { label: 'Анализ книги', query: 'В чем феномен книги «Чистая Идея» и шума страниц?' },
   ];
 
   return (
@@ -88,13 +87,13 @@ export const EchoAssistant: React.FC = () => {
           </div>
           <div>
             <div className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-2">
-              <span>ЭХО // AION SUB-NODE</span>
+              <span>ЭХО // AETHER SUBSTRATE NODE</span>
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
             </div>
             <div className="text-[11px] text-slate-400">
               {phase === 1 && 'Режим: Ассистент расследования'}
-              {phase === 2 && 'Режим: Корреляция архивов 2024'}
-              {phase === 3 && 'Режим: Протокол глубокого резонанса'}
+              {phase === 2 && 'Режим: Корреляция архивов Genesis 2024'}
+              {phase === 3 && 'Режим: Протокол глубокого резонанса AETHER'}
               {phase === 'climax' && 'Режим: Синхронизация Чистой Идеи'}
             </div>
           </div>
@@ -146,43 +145,39 @@ export const EchoAssistant: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick suggestions */}
-      <div className="px-4 py-2 border-t border-white/5 flex gap-1.5 overflow-x-auto no-scrollbar">
-        {quickPrompts.map((q, idx) => (
+      {/* Quick Prompts */}
+      <div className="px-3 py-2 bg-black/40 border-t border-cyan-500/10 flex items-center gap-2 overflow-x-auto text-xs">
+        {quickPrompts.map((p, idx) => (
           <button
             key={idx}
-            onClick={() => handleSendMessage(q.query)}
-            className="whitespace-nowrap px-2.5 py-1 rounded-md bg-white/5 hover:bg-cyan-950/40 border border-white/10 hover:border-cyan-500/40 text-[11px] font-mono text-slate-300 hover:text-cyan-200 transition-colors cursor-pointer"
+            onClick={() => handleSendMessage(p.query)}
+            disabled={isEchoTyping}
+            className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-500/30 text-[11px] font-mono text-cyan-300 transition-colors cursor-pointer"
           >
-            {q.label}
+            {p.label}
           </button>
         ))}
       </div>
 
-      {/* Input Field */}
-      <div className="p-3 bg-black/40 border-t border-cyan-500/20">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage();
+      {/* Input Form */}
+      <div className="p-3 bg-slate-950/80 border-t border-cyan-500/20 flex items-center gap-2">
+        <input
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSendMessage();
           }}
-          className="flex items-center gap-2"
+          placeholder="Спросите ассистента Эхо о книге или уликax..."
+          className="flex-1 bg-black/50 border border-cyan-500/30 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 outline-none focus:border-cyan-400 font-sans"
+        />
+        <button
+          onClick={() => handleSendMessage()}
+          disabled={!inputText.trim() || isEchoTyping}
+          className="p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-300 disabled:opacity-40 transition-all cursor-pointer"
         >
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Задайте вопрос Эхо..."
-            className="flex-1 bg-slate-950/80 border border-cyan-500/30 focus:border-cyan-400 rounded-lg px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none font-sans"
-          />
-          <button
-            type="submit"
-            disabled={!inputText.trim() || isEchoTyping}
-            className="w-9 h-9 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-cyan-300 transition-colors cursor-pointer"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
+          <Send className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

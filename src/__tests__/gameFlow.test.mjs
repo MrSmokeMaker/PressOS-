@@ -2,7 +2,7 @@ import test, { describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { useOSStore } from '../store/useOSStore.ts';
 
-describe('PressOS: AION Game Full Playthrough Flow', () => {
+describe('PressOS: AETHER Game Full Playthrough Flow', () => {
   beforeEach(() => {
     useOSStore.setState({
       phase: 1,
@@ -26,10 +26,11 @@ describe('PressOS: AION Game Full Playthrough Flow', () => {
     const store = useOSStore.getState();
     store.addClue({
       id: 'clue-tx',
-      title: 'Транзакция типографии TX-9041-AION',
+      title: 'Транзакция типографии TX-9041-AETHER',
       category: 'delivery',
       content: 'Оплата печати книги...',
-      foundAt: 'aion-syndicate.io [DevTools]',
+      source: 'NetSurf DevTools',
+      foundAt: 'aether-syndicate.io [DevTools]',
       position: { x: 620, y: 100 },
       connections: [],
     });
@@ -45,10 +46,11 @@ describe('PressOS: AION Game Full Playthrough Flow', () => {
     // В фазе 1 нашли типографию
     store.addClue({
       id: 'clue-tx',
-      title: 'Транзакция типографии TX-9041-AION',
+      title: 'Транзакция типографии TX-9041-AETHER',
       category: 'delivery',
       content: 'Оплата печати книги...',
-      foundAt: 'aion-syndicate.io [DevTools]',
+      source: 'NetSurf DevTools',
+      foundAt: 'aether-syndicate.io [DevTools]',
       position: { x: 620, y: 100 },
       connections: [],
     });
@@ -60,6 +62,7 @@ describe('PressOS: AION Game Full Playthrough Flow', () => {
       title: 'Коммит @vibe_sloth',
       category: 'origin',
       content: 'Шуточный промпт 2024 года',
+      source: 'GitHub Archive',
       foundAt: 'github.com',
       position: { x: 60, y: 100 },
       connections: [],
@@ -67,9 +70,10 @@ describe('PressOS: AION Game Full Playthrough Flow', () => {
 
     store.addClue({
       id: 'clue-server',
-      title: 'Кластер Genesis-AION',
+      title: 'Кластер Genesis-AETHER',
       category: 'server',
       content: '192.88.99.14',
+      source: 'NetSurf Network',
       foundAt: 'DevTools Network',
       position: { x: 340, y: 220 },
       connections: [],
@@ -83,6 +87,7 @@ describe('PressOS: AION Game Full Playthrough Flow', () => {
     assert.equal(state.phase, 3);
     assert.equal(state.isIsolated, true);
     assert.equal(state.windows.terminal.isOpen, true);
+    assert.equal(state.discoveredClues.some((c) => c.id === 'clue-core'), true);
   });
 
   test('Фаза 3 -> Кульминация: Дешифровка манифеста перехватывает управление и предлагает концовки', () => {
