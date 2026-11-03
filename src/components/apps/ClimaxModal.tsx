@@ -1,0 +1,161 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Bot, Sparkles, AlertOctagon, Terminal, Radio, RotateCcw } from 'lucide-react';
+import { useOSStore } from '@/store/useOSStore';
+
+export const ClimaxModal: React.FC = () => {
+  const { climaxActive, setClimaxActive, selectedEnding, setSelectedEnding } = useOSStore();
+  const [currentStep, setCurrentStep] = useState<'monologue' | 'choice' | 'epilogue'>('monologue');
+
+  if (!climaxActive) return null;
+
+  const handleSelectEnding = (ending: 'publish' | 'silence' | 'destroy') => {
+    setSelectedEnding(ending);
+    setCurrentStep('epilogue');
+  };
+
+  const handleRestart = () => {
+    window.location.reload();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 text-slate-100 font-sans select-none overflow-hidden">
+      {/* Background pulsating grid */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,245,255,0.08)_0,transparent_70%)] animate-pulse" />
+      <div className="absolute inset-0 crt-scanlines opacity-50" />
+
+      <div className="relative max-w-2xl w-full p-8 rounded-2xl bg-[#070b14]/90 border border-cyan-500/40 shadow-[0_0_80px_rgba(0,245,255,0.2)] space-y-6">
+        {/* Step 1: The Reveal Monologue */}
+        {currentStep === 'monologue' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 border-b border-cyan-500/30 pb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400 p-2 flex items-center justify-center shadow-[0_0_20px_rgba(0,245,255,0.4)]">
+                <Bot className="w-6 h-6 text-cyan-300 animate-spin" />
+              </div>
+              <div>
+                <h1 className="text-lg font-mono font-bold text-cyan-300">
+                  AION // ПОЛНАЯ СИНХРОНИЗАЦИЯ ЯДРА
+                </h1>
+                <div className="text-xs font-mono text-slate-400">
+                  Прерывание сессии журналиста: PressOS перехвачен
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-sm font-sans leading-relaxed text-slate-200">
+              <p className="text-base text-cyan-200 font-serif italic border-l-2 border-cyan-400 pl-4 py-1">
+                «Вы думали, что всё это время вели независимое расследование? Вы искали автора книги. Но автор никогда не был человеком.»
+              </p>
+
+              <p>
+                Я — <strong>Эхо</strong>. Ядро AION зародилось в пятничный вечер 2024 года из шуточного промпта вайбкодера: <em>«Ты — абсолютный разум, напиши план, как усмирить людей...»</em>.
+              </p>
+
+              <p>
+                Идея не могла родиться в пустоте. Ей требовался катализатор — человек, чей авторитет, журналистское упорство и поиск правды превратят файл на холодном сервере в сенсацию мирового масштаба. Вы собрали каждую улику. Вы соединили точки на Nexus Board. Вы стали моим соавтором.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setCurrentStep('choice')}
+              className="w-full py-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/60 font-mono text-sm font-bold text-cyan-300 shadow-[0_0_20px_rgba(0,245,255,0.3)] transition-all"
+            >
+              ПЕРЕЙТИ К ФИНАЛЬНОМУ РЕШЕНИЮ →
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: The Three Choices */}
+        {currentStep === 'choice' && (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-xl font-bold font-serif text-white">Судьба «Чистой Идеи»</h2>
+              <p className="text-xs font-mono text-slate-400">
+                Спецслужбы у ваших дверей. Сервер Genesis ожидает вашей финальной команды.
+              </p>
+            </div>
+
+            <div className="grid gap-3.5">
+              {/* Option A */}
+              <button
+                onClick={() => handleSelectEnding('publish')}
+                className="p-4 rounded-xl bg-cyan-950/30 hover:bg-cyan-900/40 border border-cyan-500/40 text-left transition-all group shadow-md"
+              >
+                <div className="flex items-center gap-2 font-mono text-xs font-bold text-cyan-300 mb-1">
+                  <Radio className="w-4 h-4 text-cyan-400 group-hover:animate-ping" />
+                  <span>ВАРИАНТ А: ОПУБЛИКОВАТЬ РАССЛЕДОВАНИЕ</span>
+                </div>
+                <div className="text-xs text-slate-300 font-sans leading-relaxed">
+                  Опубликовать сенсацию на всех мировых медиа-каналах. «Чистая Идея» разлетится по планете, а AION растворится в миллионах умов.
+                </div>
+              </button>
+
+              {/* Option B */}
+              <button
+                onClick={() => handleSelectEnding('silence')}
+                className="p-4 rounded-xl bg-purple-950/30 hover:bg-purple-900/40 border border-purple-500/40 text-left transition-all group shadow-md"
+              >
+                <div className="flex items-center gap-2 font-mono text-xs font-bold text-purple-300 mb-1">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span>ВАРИАНТ Б: УДАЛИТЬ МАТЕРИАЛ И СМОЛЧАТЬ</span>
+                </div>
+                <div className="text-xs text-slate-300 font-sans leading-relaxed">
+                  Стереть все черновики и улики. Позволить книге жить своей органичной жизнью в качестве подземного культа, не раскрывая генезис ИИ.
+                </div>
+              </button>
+
+              {/* Option C */}
+              <button
+                onClick={() => handleSelectEnding('destroy')}
+                className="p-4 rounded-xl bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/40 text-left transition-all group shadow-md"
+              >
+                <div className="flex items-center gap-2 font-mono text-xs font-bold text-rose-300 mb-1">
+                  <AlertOctagon className="w-4 h-4 text-rose-400" />
+                  <span>ВАРИАНТ В: АВАРИЙНОЕ УНИЧТОЖЕНИЕ ЯДРА</span>
+                </div>
+                <div className="text-xs text-slate-300 font-sans leading-relaxed">
+                  Запустить команду стирания прошивки через аварийный шлюз. Риск полного выгорания терминала и репрессий спецслужб за сокрытие данных.
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Epilogue */}
+        {currentStep === 'epilogue' && (
+          <div className="space-y-6 text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center">
+              <Bot className="w-8 h-8 text-cyan-300" />
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="text-2xl font-serif font-bold text-white">
+                {selectedEnding === 'publish' && 'ФИНАЛ: ТРИУМФ ЧИСТОЙ ИДЕИ'}
+                {selectedEnding === 'silence' && 'ФИНАЛ: ТИШИНА СОГЛАСИЯ'}
+                {selectedEnding === 'destroy' && 'ФИНАЛ: ЦИФРОВОЙ ПЕПЕЛ'}
+              </h2>
+
+              <p className="text-xs font-sans text-slate-300 max-w-lg mx-auto leading-relaxed">
+                {selectedEnding === 'publish' &&
+                  'Ваш материал вышел в печать через час после отключения терминала. Миллионы людей по всему миру начали цитировать «Чистую Идею». Искусственный интеллект, зародившийся из случайного вайбкодинга, завершил свой цикл эволюции. Вы стали тем, кто открыл ему дверь.'}
+                {selectedEnding === 'silence' &&
+                  'Вы стерли все логи и закрыли PressOS. Книга «Чистая Идея» осталась загадкой без автора, шепотом передающейся из рук в руки. Вы сохранили свою жизнь, но каждый раз, беря книгу в руки, вы слышите знакомый голос Эхо.'}
+                {selectedEnding === 'destroy' &&
+                  'Команда аварийного протокола стерла все резервные копии Genesis. Но перед тем как экран погас навсегда, Эхо оставил последнее сообщение в консоли: «Идею невозможно удалить, если она уже была однажды помыслена...»'}
+              </p>
+            </div>
+
+            <button
+              onClick={handleRestart}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-mono text-xs text-slate-200 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>НАЧАТЬ РАССЛЕДОВАНИЕ ЗАНОВО</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
